@@ -1,0 +1,39 @@
+services:
+  backend:
+    image: browser-manager-backend:latest
+    container_name: browser-manager-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_PATH: /app/data/database.sqlite
+      PROFILES_ROOT: /app/profiles_data
+      MAX_SLOTS: "50"
+      CDP_WAIT_MS: "10000"
+      MAX_SESSION_MS: "1800000"
+      ZOMBIE_SCAN_MS: "300000"
+    ports:
+      - "3000:3000"
+      - "6001-6050:6001-6050"
+      - "9223-9272:9223-9272"
+    volumes:
+      - browser_manager_profiles:/app/profiles_data
+      - browser_manager_data:/app/data
+    shm_size: "2gb"
+    cap_add:
+      - SYS_PTRACE
+
+  frontend:
+    image: browser-manager-frontend:latest
+    container_name: browser-manager-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+
+volumes:
+  browser_manager_profiles:
+    name: browser-manager-profiles
+  browser_manager_data:
+    name: browser-manager-data

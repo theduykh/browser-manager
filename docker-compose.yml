@@ -1,0 +1,53 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: browser-manager-backend:dev
+    container_name: browser-manager-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_PATH: /app/data/database.sqlite
+      PROFILES_ROOT: /app/profiles_data
+      MAX_SLOTS: "50"
+      CDP_WAIT_MS: "10000"
+      MAX_SESSION_MS: "1800000" # 30 phút
+      ZOMBIE_SCAN_MS: "300000" # 5 phút
+    ports:
+      - "3000:3000"
+      - "6001-6050:6001-6050" # noVNC websockify (Live View)
+      - "9223-9272:9223-9272" # CDP cho Playwright remote
+    volumes:
+      - profiles_data:/app/profiles_data
+      - ./data:/app/data # SQLite DB (bind mount folder, không phải file)
+    # SHM mặc định của Chromium quá nhỏ → tăng
+    shm_size: "2gb"
+    # Cho phép gửi tín hiệu kill -9 vào tiến trình con
+    cap_add:
+      - SYS_PTRACE
+    init: false # đã dùng tini làm PID 1 trong Dockerfile
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: browser-manager-frontend:dev
+    container_name: browser-manager-frontend
+    # restart: unless-stopped
+    environment:
+      VITE_BACKEND_URL: http://backend:3000
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/app # source code (hot reload)
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  profiles_data:
+    name: browser-manager-profiles
+  frontend_node_modules:
+    name: browser-manager-frontend-node-modules

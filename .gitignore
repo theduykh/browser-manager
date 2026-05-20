@@ -1,0 +1,26 @@
+node_modules/
+dist/
+build/
+frontend/dist/
+
+# Release artifacts (built tarballs / zips)
+release/dist/
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+
+# SQLite (lưu trong ./data/)
+data/*
+!data/.gitkeep
+
+# Profile data (chỉ giữ thư mục, không commit file profile)
+profiles_data/*
+!profiles_data/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+release/

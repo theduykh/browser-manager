@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+.git
+.gitignore
+*.log
+.env
+.env.local
+profiles_data
+backend/database.sqlite*
+frontend/dist
+README.md
+yeu-cau.md
