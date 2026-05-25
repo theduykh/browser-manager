@@ -89,7 +89,7 @@ Vite proxies `/api/*` to `http://backend:3000` via the Docker network. WebSocket
 
 ## API / Usage
 
-Open `http://localhost:8080` after `docker compose up`. The flow:
+Open `http://localhost:8088` after `docker compose up`. The flow:
 
 1. Click **+ Create profile** in the sidebar header. Modal opens; type a name matching `^[A-Za-z0-9_-]{1,64}$` → Enter or **Create**.
 2. The new profile auto-selects in the detail panel. Rename it in the **Name** field and click **Save** (button is disabled while the value is unchanged or while the profile is `IN_USE`).
@@ -104,7 +104,7 @@ Error responses from the API surface in a dismissible banner above the detail pa
 ```powershell
 docker compose build frontend
 docker compose up -d
-# Open http://localhost:8080 in a browser
+# Open http://localhost:8088 in a browser
 ```
 
 End-to-end sanity:

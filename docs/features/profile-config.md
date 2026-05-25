@@ -99,7 +99,7 @@ curl -X PATCH http://localhost:3000/api/profiles/1 -H "Content-Type: application
 curl -X PATCH http://localhost:3000/api/profiles/1 -H "Content-Type: application/json" -d '{\"profile_name\":\"x\"}'
 ```
 
-UI test: open `http://localhost:8080`, create a profile with width 800 / height 600 / arg `--lang=ja`. Allocate it. Live View should show an 800×600 desktop with the Chromium showing Japanese in its menus.
+UI test: open `http://localhost:8088`, create a profile with width 800 / height 600 / arg `--lang=ja`. Allocate it. Live View should show an 800×600 desktop with the Chromium showing Japanese in its menus.
 
 ## History
 

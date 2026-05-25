@@ -31,7 +31,7 @@ The member's workflow is the inverse:
 unzip browser-manager-<ver>.zip
 gunzip -c images.tar.gz | docker load
 docker compose up -d
-open http://localhost:8080
+open http://localhost:8088
 ```
 
 ### Why a separate prod frontend image
@@ -80,7 +80,7 @@ Output: `release/dist/browser-manager-<version>.zip`. That's the single file to 
 
 ### Member — install
 
-See [release/INSTALL.md](../../release/INSTALL.md). The summary is: extract zip, `docker load`, `docker compose up -d`, open `http://localhost:8080`.
+See [release/INSTALL.md](../../release/INSTALL.md). The summary is: extract zip, `docker load`, `docker compose up -d`, open `http://localhost:8088`.
 
 ### Member — upgrade
 
@@ -124,7 +124,7 @@ Remove-Item $tarP
 docker compose up -d
 Start-Sleep 5
 Invoke-WebRequest http://localhost:3000/health
-Invoke-WebRequest http://localhost:8080
+Invoke-WebRequest http://localhost:8088
 ```
 
 ## History

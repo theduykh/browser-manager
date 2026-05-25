@@ -64,6 +64,51 @@ async function waitForCdp(port: number, timeoutMs: number): Promise<void> {
   throw new Error(`CDP not ready on :${port} (lastErr=${String(lastErr)})`);
 }
 
+function clearChromiumCrashState(folder: string): void {
+  try {
+    const defaultDir = path.join(folder, 'Default');
+    fs.mkdirSync(defaultDir, { recursive: true });
+    const prefsPath = path.join(defaultDir, 'Preferences');
+
+    let prefs: any = {};
+    let changed = false;
+
+    if (fs.existsSync(prefsPath)) {
+      const content = fs.readFileSync(prefsPath, 'utf8');
+      try {
+        prefs = JSON.parse(content);
+      } catch {
+        prefs = {};
+      }
+    } else {
+      changed = true; // file does not exist, we will create it
+    }
+
+    if (!prefs.profile) prefs.profile = {};
+    if (prefs.profile.exit_type !== 'Normal' && prefs.profile.exit_type !== 'none') {
+      prefs.profile.exit_type = 'Normal';
+      changed = true;
+    }
+    if (prefs.profile.exited_cleanly !== true) {
+      prefs.profile.exited_cleanly = true;
+      changed = true;
+    }
+
+    if (!prefs.session) prefs.session = {};
+    if (prefs.session.restore_on_startup !== 5) {
+      prefs.session.restore_on_startup = 5;
+      changed = true;
+    }
+
+    if (changed) {
+      fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2), 'utf8');
+      log('info', 'chromium.prefs.updated', { folder });
+    }
+  } catch (err) {
+    log('warn', 'chromium.prefs.update_failed', { folder, err: String(err) });
+  }
+}
+
 export async function allocateBrowser(
   db: Database.Database,
   opts: { profileId?: number } = {},
@@ -88,6 +133,7 @@ export async function allocateBrowser(
 
   fs.mkdirSync(folder, { recursive: true });
   cleanProfileLocks(folder);
+  clearChromiumCrashState(folder);
 
   const pids: number[] = [];
   const logBase = `/tmp/slot_${slotId}`;
@@ -132,12 +178,15 @@ export async function allocateBrowser(
       args: [
         `--user-data-dir=${folder}`,
         '--no-sandbox',
-        // '--no-first-run',
-        // '--disable-encryption',
-        // '--no-default-browser-check',
-        // '--disable-dev-shm-usage',
-        // '--disable-gpu',
-        // '--disable-software-rasterizer',
+        '--enable-automation',
+        '--disable-infobars',
+        '--no-first-run',
+        '--disable-encryption',
+        '--no-default-browser-check',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--hide-crash-restore-bubble',
         '--disable-features=Translate,VizDisplayCompositor',
         '--remote-debugging-address=127.0.0.1',
         `--remote-debugging-port=${internalCdp}`,
