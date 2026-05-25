@@ -1,10 +1,15 @@
-# Playwright base image (đã có Chromium + deps)
-FROM mcr.microsoft.com/playwright:v1.50.0-noble
+# Base: Node slim (Chromium is installed by Playwright CLI below — not by MS image)
+FROM node:22-bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Ho_Chi_Minh
 
-# System deps cho Xvfb / VNC / websockify
+# Pin Playwright's browser cache to /ms-playwright so backend's resolveChromiumBin()
+# (which scans /ms-playwright for a `chrome` binary) keeps working unchanged.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# System deps cho Xvfb / VNC / websockify + tini.
+# Playwright `install --with-deps` sẽ tự kéo các shared libs Chromium cần.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         xvfb \
         x11vnc \
@@ -19,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         tini \
     && rm -rf /var/lib/apt/lists/*
 
-# noVNC trên Ubuntu cài vào /usr/share/novnc, tạo symlink cho tiện
+# noVNC trên Debian cài vào /usr/share/novnc, tạo symlink cho tiện
 RUN ln -sf /usr/share/novnc /opt/novnc || true
 
 WORKDIR /app
@@ -27,6 +32,10 @@ WORKDIR /app
 # Cài deps trước để tận dụng layer cache
 COPY backend/package.json backend/package-lock.json* ./backend/
 RUN cd backend && npm install
+
+# Cài Chromium qua Playwright CLI (phiên bản theo `playwright` trong package.json).
+# --with-deps cài kèm system libraries Chromium cần trên Debian.
+RUN cd backend && npx playwright install --with-deps chromium
 
 # Copy source
 COPY backend ./backend

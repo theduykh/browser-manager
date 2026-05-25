@@ -13,7 +13,9 @@ Spec reference: [yeu-cau.md §2, §7](../../yeu-cau.md).
 
 ## Design
 
-A single backend container based on `mcr.microsoft.com/playwright:v1.49.0-jammy`, with the extra system packages required for virtual display + VNC streaming. The container runs `tini` as PID 1 so child processes (Xvfb, x11vnc, websockify, Chromium) get reaped cleanly when the orchestrator kills them.
+A single backend container based on `node:22-bookworm-slim`. Chromium is installed at build time via `npx playwright install --with-deps chromium`, with `PLAYWRIGHT_BROWSERS_PATH=/ms-playwright` so the browser cache lives at a stable path. Extra system packages provide the virtual display + VNC streaming stack. The container runs `tini` as PID 1 so child processes (Xvfb, x11vnc, websockify, Chromium) get reaped cleanly when the orchestrator kills them.
+
+The Chromium version is pinned by the `playwright` entry in [backend/package.json](../../backend/package.json), not by the base image — bumping the browser is `npm i -D playwright@latest` + image rebuild. This decouples us from Microsoft's `mcr.microsoft.com/playwright` release cadence (which historically lags many months).
 
 ```
 Windows host
@@ -117,3 +119,4 @@ While the script runs, the Live View should show `example.com` rendering.
 ## History
 
 - 2026-05-19 — Initial implementation (monorepo skeleton, Dockerfile, compose, smoke test).
+- 2026-05-20 — Switched base image from `mcr.microsoft.com/playwright:v1.50.0-noble` to `node:22-bookworm-slim`; Chromium now installed via `npx playwright install --with-deps chromium` (version controlled by `playwright` in `backend/package.json`). `PLAYWRIGHT_BROWSERS_PATH=/ms-playwright` keeps `resolveChromiumBin()` working unchanged.
