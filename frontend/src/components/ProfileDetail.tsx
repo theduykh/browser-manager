@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import type { Profile, ProfileConfigInput } from '../api/types';
+import type { Group, Profile, ProfileConfigInput } from '../api/types';
 import { ProfileForm, ProfileFormValues } from './ProfileForm';
 import { LiveView } from '../pages/LiveView';
 
 interface Props {
   profile: Profile;
   busy: boolean;
+  groups: Group[];
+  tagSuggestions?: string[];
   onSave: (patch: ProfileConfigInput) => void;
   onAllocate: () => void;
   onRelease: () => void;
@@ -14,7 +16,7 @@ interface Props {
 }
 
 export function ProfileDetail({
-  profile, busy, onSave, onAllocate, onRelease, onReset, onDelete,
+  profile, busy, groups, tagSuggestions, onSave, onAllocate, onRelease, onReset, onDelete,
 }: Props) {
   const initial: ProfileFormValues = useMemo(() => ({
     profile_name:  profile.profile_name,
@@ -22,6 +24,8 @@ export function ProfileDetail({
     window_height: profile.window_height,
     launch_args:   profile.launch_args,
     note:          profile.note,
+    group_id:      profile.group_id,
+    tags:          profile.tags,
     launch_config: (() => {
       try {
         const p = JSON.parse(profile.launch_config);
@@ -29,7 +33,9 @@ export function ProfileDetail({
       } catch { return {}; }
     })(),
   }), [profile.id, profile.profile_name, profile.window_width,
-       profile.window_height, profile.launch_args, profile.note, profile.launch_config]);
+       profile.window_height, profile.launch_args, profile.note, profile.launch_config,
+       // eslint-disable-next-line react-hooks/exhaustive-deps
+       profile.group_id, JSON.stringify(profile.tags)]);
 
   const isInUse = profile.status === 'IN_USE';
   const isCorrupt = profile.status === 'CORRUPT';
@@ -86,6 +92,8 @@ export function ProfileDetail({
           key={profile.id}
           initial={initial}
           busy={busy}
+          groups={groups}
+          tagSuggestions={tagSuggestions}
           lockName={isInUse}
           saveLabel="Save changes"
           onSubmit={(_v, changed) => onSave(changed)}

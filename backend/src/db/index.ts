@@ -23,6 +23,8 @@ export function getDb(): Database.Database {
   ensureColumn(db, 'profiles', 'launch_args',   "TEXT NOT NULL DEFAULT ''");
   ensureColumn(db, 'profiles', 'note',          "TEXT NOT NULL DEFAULT ''");
   ensureColumn(db, 'profiles', 'launch_config', "TEXT NOT NULL DEFAULT '{}'");
+  ensureColumn(db, 'profiles', 'group_id', 'INTEGER');
+  ensureColumn(db, 'profiles', 'tags',     "TEXT NOT NULL DEFAULT '[]'");
 
   _db = db;
   log('info', 'db.opened', { path: config.databasePath });

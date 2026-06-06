@@ -16,6 +16,12 @@ function pickConfig(body: any): ProfileConfigInput {
   if (body?.launch_config !== undefined && typeof body.launch_config === 'object' && body.launch_config !== null) {
     out.launch_config = body.launch_config as LaunchConfig;
   }
+  if (body?.group_id !== undefined) {
+    out.group_id = body.group_id === null ? null : Number(body.group_id);
+  }
+  if (Array.isArray(body?.tags)) {
+    out.tags = body.tags.map((t: unknown) => String(t));
+  }
   return out;
 }
 

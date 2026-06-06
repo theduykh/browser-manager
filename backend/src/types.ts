@@ -19,6 +19,24 @@ export function parseLaunchConfig(raw: string): LaunchConfig {
   return {};
 }
 
+export interface GroupRow {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface Group extends GroupRow {
+  profile_count: number;
+}
+
+export function parseTags(raw: string): string[] {
+  try {
+    const p = JSON.parse(raw);
+    if (Array.isArray(p)) return p.filter((t): t is string => typeof t === 'string');
+  } catch { /* fall through */ }
+  return [];
+}
+
 export interface ProfileRow {
   id: number;
   profile_name: string;
@@ -35,14 +53,21 @@ export interface ProfileRow {
   launch_args: string;
   note: string;
   launch_config: string;
+  group_id: number | null;
+  tags: string;
 }
 
-export interface Profile extends Omit<ProfileRow, 'pids'> {
+export interface Profile extends Omit<ProfileRow, 'pids' | 'tags'> {
   pids: number[] | null;
+  tags: string[];
 }
 
 export function rowToProfile(r: ProfileRow): Profile {
-  return { ...r, pids: r.pids ? (JSON.parse(r.pids) as number[]) : null };
+  return {
+    ...r,
+    pids: r.pids ? (JSON.parse(r.pids) as number[]) : null,
+    tags: parseTags(r.tags),
+  };
 }
 
 export interface ProfileConfigInput {
@@ -51,4 +76,6 @@ export interface ProfileConfigInput {
   launch_args?: string;
   note?: string;
   launch_config?: LaunchConfig;
+  group_id?: number | null;
+  tags?: string[];
 }

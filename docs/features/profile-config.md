@@ -153,3 +153,4 @@ UI test: open `http://localhost:8088` and open the create panel. Verify the Conf
 - 2026-05-19 — Initial implementation (4 fields, shared form, orchestrator integration).
 - 2026-05-19 — Expanded `profile_name` charset to allow `.` `@` for email-style names. Added safety checks against `.`, `..`, leading/trailing `.`.
 - 2026-06-06 — Added `launch_config` structured JSON field; maps to Chromium flags at allocate time. Raw `launch_args` preserved as power-user escape hatch.
+- 2026-06-06 — Fixed: the Dashboard create payload omitted `launch_config`, so structured options set in the create modal were dropped on create (edit was unaffected). The create handler now spreads all form values.

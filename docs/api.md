@@ -11,7 +11,7 @@ Reference for integrating a test framework (Playwright, Puppeteer, custom CDP cl
 
 ## 1. Concepts
 
-A **profile** is a persistent Chromium user-data directory on the server, with an associated configuration (window size, extra launch args, note) and a lifecycle status:
+A **profile** is a persistent Chromium user-data directory on the server, with an associated configuration (window size, launch options, note), optional organization (one **group** + many free-form **tags**), and a lifecycle status:
 
 | Status | Meaning |
 | --- | --- |
@@ -88,6 +88,8 @@ Create a new profile and its on-disk folder.
 | `launch_args` | string | no | `""` | Whitespace-separated Chromium flags appended **after** all `launch_config` flags. Quoted args are **not** supported. Max 4000 chars. |
 | `note` | string | no | `""` | Free-form metadata; not used at launch. Max 2000 chars. |
 | `launch_config` | object | no | `{}` | Structured Chromium options (see [launch_config](#launch-config)). Stored as JSON; serialised form max 4000 chars. |
+| `group_id` | integer \| null | no | `null` | The [group](#group-shape) this profile belongs to. `null` = Ungrouped (the default). Must reference an existing group. |
+| `tags` | string[] | no | `[]` | Free-form labels. Each tag matches `^[\p{L}\p{N}._-]{1,32}$`; max 20 per profile. Duplicates are de-duplicated. |
 
 **Response 201** — the created [Profile](#profile-shape).
 
@@ -248,6 +250,58 @@ Send a heartbeat every **30–90 seconds** while a session is open. The server's
 
 ---
 
+### 3.10 `GET /api/groups`
+
+List every group, ordered by name (case-insensitive), each with the count of profiles assigned to it.
+
+**Response 200** — array of [Group](#group-shape).
+
+---
+
+### 3.11 `POST /api/groups`
+
+Create a group.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | string | yes | Trimmed; must match `^[\p{L}\p{N} ._@-]{1,64}$` (Unicode letters allowed, so Vietnamese names work). Case-insensitively unique. |
+
+**Response 201** — the created [Group](#group-shape) (`profile_count` 0).
+
+**Errors**
+- `400 INVALID_GROUP_NAME` — name fails the regex.
+- `409 DUPLICATE_GROUP` — name already in use (case-insensitive).
+
+---
+
+### 3.12 `PATCH /api/groups/:id`
+
+Rename a group.
+
+**Request body** — `{ "name": "<new name>" }` (same rules as create).
+
+**Response 200** — the updated [Group](#group-shape).
+
+**Errors**
+- `400 BAD_ID`, `400 INVALID_GROUP_NAME`.
+- `404 GROUP_NOT_FOUND`.
+- `409 DUPLICATE_GROUP`.
+
+---
+
+### 3.13 `DELETE /api/groups/:id`
+
+Delete a group. Profiles in the group are **not** deleted — they become Ungrouped (`group_id` set to `null`) atomically with the delete.
+
+**Response 204** — empty body on success.
+
+**Errors**
+- `400 BAD_ID`, `404 GROUP_NOT_FOUND`.
+
+---
+
 ## 4. Profile shape <a name="profile-shape"></a>
 
 ```ts
@@ -269,8 +323,23 @@ interface Profile {
   launch_args: string;
   note: string;
   launch_config: string;        // JSON string; see §4.1
+  group_id: number | null;      // owning group, null = Ungrouped
+  tags: string[];               // parsed array (not a raw string)
 }
 ```
+
+### Group shape <a name="group-shape"></a>
+
+```ts
+interface Group {
+  id: number;
+  name: string;
+  created_at: string;           // ISO-8601
+  profile_count: number;        // profiles currently assigned to this group
+}
+```
+
+Note: on `Profile`, `tags` is returned as a parsed `string[]`, while `launch_config` is a raw JSON string — they differ because tags are a first-class list the UI iterates, whereas `launch_config` is an opaque options blob.
 
 ### 4.1 launch_config <a name="launch-config"></a>
 
@@ -300,10 +369,13 @@ On `PATCH`, `launch_config` is replaced wholesale (not merged) — send the comp
 | `BAD_ID` | 400 | routes | URL `:id` is not an integer |
 | `BAD_PROFILE_ID` | 400 | browser routes | `profile_id` body field invalid |
 | `INVALID_NAME` | 400 | profiles | name fails `^[A-Za-z0-9._@-]{1,64}$` (also rejects `.`, `..`, leading/trailing `.`) |
-| `INVALID_CONFIG` | 400 | profiles | width/height out of `[320, 7680]`, or args/note too long |
+| `INVALID_CONFIG` | 400 | profiles | width/height out of `[320, 7680]`, args/note/launch_config too long, an invalid tag, too many tags, or `group_id` does not reference an existing group |
 | `PROFILE_NOT_FOUND` | 404 | profiles | no row with that id |
 | `PROFILE_BUSY` | 409 | profiles | operation requires the profile not to be `IN_USE` |
 | `DUPLICATE_PROFILE` | 409 | profiles | name collides with another row |
+| `INVALID_GROUP_NAME` | 400 | groups | name fails `^[\p{L}\p{N} ._@-]{1,64}$` |
+| `GROUP_NOT_FOUND` | 404 | groups | no group with that id |
+| `DUPLICATE_GROUP` | 409 | groups | group name already in use (case-insensitive) |
 | `NO_IDLE_PROFILE` | 409 | allocate | no IDLE rows exist |
 | `PROFILE_NOT_IDLE` | 409 | allocate | requested `profile_id` is not IDLE |
 | `NOT_IN_USE` | 409 | heartbeat | profile is not currently allocated |

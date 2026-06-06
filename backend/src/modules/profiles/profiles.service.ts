@@ -2,13 +2,16 @@ import type Database from 'better-sqlite3';
 import * as fs from 'fs';
 import * as path from 'path';
 import { config } from '../../config';
-import { ProfileRow, Profile, ProfileConfigInput, rowToProfile, parseLaunchConfig } from '../../types';
+import { ProfileRow, Profile, ProfileConfigInput, rowToProfile, parseLaunchConfig, parseTags } from '../../types';
 import { releaseBrowser } from '../browser/orchestrator.service';
 import { cleanProfileLocks } from '../browser/profile-lock-cleaner';
+import { groupExists } from '../groups/groups.service';
 
 // Allows email-style names (e.g. user@example.com). Filesystem-safe characters only.
 const NAME_RE = /^[A-Za-z0-9._@-]{1,64}$/;
 const MIN_DIM = 320;
+const MAX_TAGS = 20;
+const TAG_RE = /^[\p{L}\p{N}._-]{1,32}$/u;
 
 function validateName(name: string): void {
   if (!NAME_RE.test(name)) throw new InvalidNameError(`name must match ${NAME_RE}`);
@@ -34,6 +37,7 @@ function normalizeConfig(input: ProfileConfigInput): {
   launch_args: string;
   note: string;
   launch_config: string;
+  tags: string;
 } {
   const w = input.window_width ?? 1920;
   const h = input.window_height ?? 1080;
@@ -54,7 +58,28 @@ function normalizeConfig(input: ProfileConfigInput): {
   if (lc.length > LC_MAX) throw new InvalidConfigError(`launch_config too long (>${LC_MAX} chars)`);
   const launch_config = lc;
 
-  return { window_width: w, window_height: h, launch_args, note, launch_config };
+  const tagsInput = input.tags ?? [];
+  if (!Array.isArray(tagsInput)) throw new InvalidConfigError('tags must be an array');
+  const seen = new Set<string>();
+  const tagsArr: string[] = [];
+  for (const raw of tagsInput) {
+    const t = String(raw).trim();
+    if (t === '') continue;
+    if (!TAG_RE.test(t)) throw new InvalidConfigError(`invalid tag '${t}'`);
+    if (!seen.has(t)) { seen.add(t); tagsArr.push(t); }
+  }
+  if (tagsArr.length > MAX_TAGS) throw new InvalidConfigError(`too many tags (>${MAX_TAGS})`);
+  const tags = JSON.stringify(tagsArr);
+
+  return { window_width: w, window_height: h, launch_args, note, launch_config, tags };
+}
+
+function resolveGroupId(db: Database.Database, group_id: number | null | undefined, fallback: number | null): number | null {
+  if (group_id === undefined) return fallback;
+  if (group_id === null) return null;
+  if (!Number.isInteger(group_id) || group_id <= 0) throw new InvalidConfigError('group_id must be a positive integer or null');
+  if (!groupExists(db, group_id)) throw new InvalidConfigError(`group_id ${group_id} does not exist`);
+  return group_id;
 }
 
 export function listProfiles(db: Database.Database): Profile[] {
@@ -73,16 +98,17 @@ export function createProfile(
   const existing = db.prepare(`SELECT id FROM profiles WHERE profile_name=?`).get(profileName);
   if (existing) throw new DuplicateProfileError(`profile_name '${profileName}' already exists`);
 
-  const { window_width, window_height, launch_args, note, launch_config } = normalizeConfig(cfg);
+  const { window_width, window_height, launch_args, note, launch_config, tags } = normalizeConfig(cfg);
+  const groupId = resolveGroupId(db, cfg.group_id, null);
 
   fs.mkdirSync(folder, { recursive: true });
   const row = db
     .prepare(
       `INSERT INTO profiles
-         (profile_name, folder_path, window_width, window_height, launch_args, note, launch_config)
-       VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+         (profile_name, folder_path, window_width, window_height, launch_args, note, launch_config, group_id, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
     )
-    .get(profileName, folder, window_width, window_height, launch_args, note, launch_config) as ProfileRow;
+    .get(profileName, folder, window_width, window_height, launch_args, note, launch_config, groupId, tags) as ProfileRow;
   return rowToProfile(row);
 }
 
@@ -109,7 +135,9 @@ export function updateProfile(db: Database.Database, id: number, input: ProfileU
     launch_args:   input.launch_args   ?? row.launch_args,
     note:          input.note          ?? row.note,
     launch_config: input.launch_config ?? parseLaunchConfig(row.launch_config),
+    tags:          input.tags          ?? parseTags(row.tags),
   });
+  const groupId = resolveGroupId(db, input.group_id, row.group_id);
 
   let newFolder = row.folder_path;
   if (newName !== row.profile_name) {
@@ -126,10 +154,11 @@ export function updateProfile(db: Database.Database, id: number, input: ProfileU
       `UPDATE profiles
          SET profile_name=?, folder_path=?,
              window_width=?, window_height=?, launch_args=?, note=?, launch_config=?,
+             group_id=?, tags=?,
              last_active=CURRENT_TIMESTAMP
        WHERE id=? RETURNING *`,
     )
-    .get(newName, newFolder, cfg.window_width, cfg.window_height, cfg.launch_args, cfg.note, cfg.launch_config, id) as ProfileRow;
+    .get(newName, newFolder, cfg.window_width, cfg.window_height, cfg.launch_args, cfg.note, cfg.launch_config, groupId, cfg.tags, id) as ProfileRow;
   return rowToProfile(updated);
 }
 

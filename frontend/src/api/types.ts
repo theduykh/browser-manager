@@ -11,6 +11,13 @@ export interface LaunchConfig {
   disablePopupBlocking?: boolean;
 }
 
+export interface Group {
+  id: number;
+  name: string;
+  created_at: string;
+  profile_count: number;
+}
+
 export interface Profile {
   id: number;
   profile_name: string;
@@ -27,6 +34,8 @@ export interface Profile {
   launch_args: string;
   note: string;
   launch_config: string;
+  group_id: number | null;
+  tags: string[];
 }
 
 export interface ProfileConfigInput {
@@ -36,6 +45,8 @@ export interface ProfileConfigInput {
   launch_args?: string;
   note?: string;
   launch_config?: LaunchConfig;
+  group_id?: number | null;
+  tags?: string[];
 }
 
 export interface AllocateResponse {

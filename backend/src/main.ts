@@ -4,6 +4,7 @@ import { log } from './log';
 import { getDb, closeDb } from './db';
 import { reconcileOnBoot } from './bootstrap/reconcile';
 import { profilesRouter } from './modules/profiles/profiles.routes';
+import { groupsRouter } from './modules/groups/groups.routes';
 import { browserRouter } from './modules/browser/browser.routes';
 import { startZombieKiller } from './cron/zombie-killer';
 
@@ -16,6 +17,7 @@ function buildApp(db: ReturnType<typeof getDb>) {
   });
 
   app.use('/api/profiles', profilesRouter(db));
+  app.use('/api/groups', groupsRouter(db));
   app.use('/api/browser', browserRouter(db));
 
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

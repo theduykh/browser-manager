@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { LaunchConfig, ProfileConfigInput } from '../api/types';
+import type { Group, LaunchConfig, ProfileConfigInput } from '../api/types';
+import { TagInput } from './TagInput';
 
 export interface ProfileFormValues {
   profile_name: string;
@@ -8,6 +9,8 @@ export interface ProfileFormValues {
   launch_args: string;
   note: string;
   launch_config: LaunchConfig;
+  group_id: number | null;
+  tags: string[];
 }
 
 export const DEFAULT_VALUES: ProfileFormValues = {
@@ -17,11 +20,15 @@ export const DEFAULT_VALUES: ProfileFormValues = {
   launch_args: '',
   note: '',
   launch_config: {},
+  group_id: null,
+  tags: [],
 };
 
 interface Props {
   initial: ProfileFormValues;
   busy: boolean;
+  groups: Group[];
+  tagSuggestions?: string[];
   lockName?: boolean;            // disable name editing (when profile is IN_USE)
   saveLabel?: string;
   onSubmit: (values: ProfileFormValues, changed: ProfileConfigInput) => void;
@@ -76,7 +83,8 @@ function detectPreset(w: number, h: number): string {
 }
 
 export function ProfileForm({
-  initial, busy, lockName, saveLabel = 'Save', onSubmit, onCancel, showNameField = true,
+  initial, busy, groups, tagSuggestions, lockName, saveLabel = 'Save',
+  onSubmit, onCancel, showNameField = true,
 }: Props) {
   const [v, setV] = useState<ProfileFormValues>(initial);
   // 'Custom' is a user intent, not derivable from dimensions alone: 1920×1080 matches a
@@ -90,9 +98,11 @@ export function ProfileForm({
     setCustomSize(detectPreset(initial.window_width, initial.window_height) === 'Custom');
   }, [
     initial.profile_name, initial.window_width, initial.window_height,
-    initial.launch_args, initial.note,
+    initial.launch_args, initial.note, initial.group_id,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     JSON.stringify(initial.launch_config),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(initial.tags),
   ]);
 
   const set = <K extends keyof ProfileFormValues>(k: K, val: ProfileFormValues[K]) =>
@@ -102,11 +112,15 @@ export function ProfileForm({
     setV((prev) => ({ ...prev, launch_config: { ...prev.launch_config, [k]: val } }));
 
   const dirtyFields: (keyof ProfileFormValues)[] = (Object.keys(initial) as (keyof ProfileFormValues)[])
-    .filter((k) =>
-      k === 'launch_config'
-        ? JSON.stringify(v.launch_config) !== JSON.stringify(initial.launch_config)
-        : v[k] !== initial[k],
-    );
+    .filter((k) => {
+      if (k === 'launch_config') {
+        return JSON.stringify(v.launch_config) !== JSON.stringify(initial.launch_config);
+      }
+      if (k === 'tags') {
+        return JSON.stringify(v.tags) !== JSON.stringify(initial.tags);
+      }
+      return v[k] !== initial[k];
+    });
 
   const nameValid = isValidName(v.profile_name);
   const dimsValid =
@@ -125,6 +139,8 @@ export function ProfileForm({
       if (k === 'launch_args')     changed.launch_args   = v.launch_args;
       if (k === 'note')            changed.note          = v.note;
       if (k === 'launch_config')   changed.launch_config = v.launch_config;
+      if (k === 'group_id')        changed.group_id      = v.group_id;
+      if (k === 'tags')            changed.tags          = v.tags;
     }
     onSubmit(v, changed);
   };
@@ -149,6 +165,31 @@ export function ProfileForm({
           )}
         </div>
       )}
+
+      <div className="form-row">
+        <label>Group</label>
+        <select
+          value={v.group_id ?? ''}
+          disabled={busy}
+          onChange={(e) => set('group_id', e.target.value === '' ? null : Number(e.target.value))}
+        >
+          <option value="">Ungrouped</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>{g.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-row">
+        <label>Tags</label>
+        <TagInput
+          value={v.tags}
+          disabled={busy}
+          suggestions={tagSuggestions}
+          onChange={(tags) => set('tags', tags)}
+        />
+        <div className="field-hint">Press Enter or comma to add. Letters/numbers/._- only, ≤32 chars, max 20 tags.</div>
+      </div>
 
       <div className="form-row">
         <label>Window size</label>

@@ -74,6 +74,10 @@ Every mutation (create, save, delete, reset, allocate, release) reports its outc
 - The Dashboard wires `onSuccess` to `toast.success(...)` and a shared `handleErr` to `toast.error(...)`. `ApiError` is formatted as `CODE: message`; anything else is stringified.
 - This replaced the earlier single dismissible error banner on the detail panel. The inline `.error-banner` is still used by Live View for persistent connection errors (a disconnected socket is a state, not a transient event, so it is not a toast).
 
+### Sidebar filtering (groups & tags)
+
+The sidebar has a filter bar above the flat profile list: a group `<select>` (All / Ungrouped / each group) and a row of toggleable tag chips. Filters combine with AND. Each list item carries a meta line (group name + read-only tag chips), and a **Manage groups** button opens [ManageGroupsModal](../../frontend/src/components/ManageGroupsModal.tsx). Group/tag assignment lives on the profile form (a Group `<select>` and the [TagInput](../../frontend/src/components/TagInput.tsx) chip input). Full design + data model in [groups-and-tags](groups-and-tags.md).
+
 ### Dev container
 
 `Dockerfile.frontend` runs `vite dev --host 0.0.0.0 --port 8080`. The frontend folder is bind-mounted from the host so file changes hot-reload. `node_modules` is a named volume so the install survives bind mounts (Linux container's `node_modules` would otherwise be shadowed by the empty Windows host folder).
@@ -91,6 +95,8 @@ Vite proxies `/api/*` to `http://backend:3000` via the Docker network. WebSocket
 - [frontend/src/components/CreateProfileModal.tsx](../../frontend/src/components/CreateProfileModal.tsx) — focused-modal for new profiles.
 - [frontend/src/components/ProfileDetail.tsx](../../frontend/src/components/ProfileDetail.tsx) — info table, editable name, action buttons.
 - [frontend/src/components/Toast.tsx](../../frontend/src/components/Toast.tsx) — `<ToastProvider>` + `useToast()` for top-right success/error notifications.
+- [frontend/src/api/groups.ts](../../frontend/src/api/groups.ts) — group CRUD client.
+- [frontend/src/components/TagInput.tsx](../../frontend/src/components/TagInput.tsx) — tag chip input. [frontend/src/components/ManageGroupsModal.tsx](../../frontend/src/components/ManageGroupsModal.tsx) — group CRUD modal. See [groups-and-tags](groups-and-tags.md).
 - [frontend/src/pages/LiveView.tsx](../../frontend/src/pages/LiveView.tsx) — noVNC RFB embed + heartbeat.
 - [frontend/src/lib/heartbeat.ts](../../frontend/src/lib/heartbeat.ts) — `useHeartbeat(profileId)` hook.
 - [frontend/src/styles.css](../../frontend/src/styles.css) — flat dark theme, no framework.
@@ -132,3 +138,4 @@ End-to-end sanity:
 - 2026-05-19 — Embedded Live View into the detail panel (no longer a full page); auto-shown when status is `IN_USE`. Action buttons moved to the top of the panel. App-level view switching removed.
 - 2026-05-19 — Live View sized for FHD: canvas takes the profile's natural aspect ratio with a viewport-height-based `maxWidth` so it fills almost all of a 1920×1080 detail column. Added native Fullscreen toggle (button + Escape).
 - 2026-06-06 — Added top-right toast notifications (`Toast.tsx`, `ToastProvider`, `useToast`) for all mutations. Success + error feedback for create/save/delete/reset/allocate/release. Replaced the Dashboard's single error banner; Live View keeps its inline connection-error banner.
+- 2026-06-06 — Sidebar filter bar (group select + tag chips, AND semantics), per-item group/tag meta line, Manage-groups modal, and Group/Tags inputs on the profile form. See [groups-and-tags](groups-and-tags.md). Fixed a latent bug where the create payload omitted fields: it now spreads all form values, so `launch_config` (and future fields) persist on create.

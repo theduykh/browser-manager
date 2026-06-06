@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
+import type { Group } from '../api/types';
 import { ProfileForm, DEFAULT_VALUES, ProfileFormValues } from './ProfileForm';
 
 interface Props {
   busy: boolean;
+  groups: Group[];
+  tagSuggestions?: string[];
   onCancel: () => void;
   onSubmit: (values: ProfileFormValues) => void;
 }
 
-export function CreateProfileModal({ busy, onCancel, onSubmit }: Props) {
+export function CreateProfileModal({ busy, groups, tagSuggestions, onCancel, onSubmit }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
     window.addEventListener('keydown', onKey);
@@ -24,6 +27,8 @@ export function CreateProfileModal({ busy, onCancel, onSubmit }: Props) {
         <ProfileForm
           initial={DEFAULT_VALUES}
           busy={busy}
+          groups={groups}
+          tagSuggestions={tagSuggestions}
           saveLabel="Create"
           onCancel={onCancel}
           onSubmit={(values) => onSubmit(values)}
