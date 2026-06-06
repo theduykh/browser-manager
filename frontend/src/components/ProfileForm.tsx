@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ProfileConfigInput } from '../api/types';
+import type { LaunchConfig, ProfileConfigInput } from '../api/types';
 
 export interface ProfileFormValues {
   profile_name: string;
@@ -7,6 +7,7 @@ export interface ProfileFormValues {
   window_height: number;
   launch_args: string;
   note: string;
+  launch_config: LaunchConfig;
 }
 
 export const DEFAULT_VALUES: ProfileFormValues = {
@@ -15,6 +16,7 @@ export const DEFAULT_VALUES: ProfileFormValues = {
   window_height: 1080,
   launch_args: '',
   note: '',
+  launch_config: {},
 };
 
 interface Props {
@@ -27,6 +29,38 @@ interface Props {
   showNameField?: boolean;       // hide name field in some contexts
 }
 
+const WINDOW_PRESETS = [
+  { label: '1920 × 1080 — Full HD',  w: 1920, h: 1080 },
+  { label: '1440 × 900',             w: 1440, h: 900  },
+  { label: '1366 × 768',             w: 1366, h: 768  },
+  { label: '1280 × 720 — HD',        w: 1280, h: 720  },
+  { label: '2560 × 1440 — 2K',       w: 2560, h: 1440 },
+  { label: '3840 × 2160 — 4K',       w: 3840, h: 2160 },
+  { label: 'Custom',                 w: 0,    h: 0    },
+] as const;
+
+const LANG_OPTIONS = [
+  { label: 'System default', value: '' },
+  { label: 'English (US)',   value: 'en-US' },
+  { label: 'Vietnamese',     value: 'vi-VN' },
+  { label: 'Japanese',       value: 'ja-JP' },
+  { label: 'Chinese (CN)',   value: 'zh-CN' },
+  { label: 'Korean',         value: 'ko-KR' },
+  { label: 'French',         value: 'fr-FR' },
+  { label: 'German',         value: 'de-DE' },
+  { label: 'Spanish',        value: 'es-ES' },
+  { label: 'Portuguese (BR)',value: 'pt-BR' },
+] as const;
+
+const BOOL_TOGGLES: Array<{ key: keyof LaunchConfig; label: string }> = [
+  { key: 'disableWebSecurity',   label: 'Disable web security' },
+  { key: 'disableExtensions',    label: 'Disable extensions' },
+  { key: 'muteAudio',            label: 'Mute audio' },
+  { key: 'ignoreCertErrors',     label: 'Ignore certificate errors' },
+  { key: 'disableNotifications', label: 'Disable notifications' },
+  { key: 'disablePopupBlocking', label: 'Disable popup blocking' },
+];
+
 const NAME_RE = /^[A-Za-z0-9._@-]{1,64}$/;
 
 function isValidName(name: string): boolean {
@@ -37,21 +71,42 @@ function isValidName(name: string): boolean {
   return true;
 }
 
+function detectPreset(w: number, h: number): string {
+  return WINDOW_PRESETS.find((p) => p.w === w && p.h === h && p.w !== 0)?.label ?? 'Custom';
+}
+
 export function ProfileForm({
   initial, busy, lockName, saveLabel = 'Save', onSubmit, onCancel, showNameField = true,
 }: Props) {
   const [v, setV] = useState<ProfileFormValues>(initial);
+  // 'Custom' is a user intent, not derivable from dimensions alone: 1920×1080 matches a
+  // preset yet the user may still want manual entry. Track it as explicit state.
+  const [customSize, setCustomSize] = useState(
+    () => detectPreset(initial.window_width, initial.window_height) === 'Custom',
+  );
 
-  useEffect(() => { setV(initial); }, [
+  useEffect(() => {
+    setV(initial);
+    setCustomSize(detectPreset(initial.window_width, initial.window_height) === 'Custom');
+  }, [
     initial.profile_name, initial.window_width, initial.window_height,
     initial.launch_args, initial.note,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(initial.launch_config),
   ]);
 
   const set = <K extends keyof ProfileFormValues>(k: K, val: ProfileFormValues[K]) =>
     setV((prev) => ({ ...prev, [k]: val }));
 
+  const setLC = <K extends keyof LaunchConfig>(k: K, val: LaunchConfig[K]) =>
+    setV((prev) => ({ ...prev, launch_config: { ...prev.launch_config, [k]: val } }));
+
   const dirtyFields: (keyof ProfileFormValues)[] = (Object.keys(initial) as (keyof ProfileFormValues)[])
-    .filter((k) => v[k] !== initial[k]);
+    .filter((k) =>
+      k === 'launch_config'
+        ? JSON.stringify(v.launch_config) !== JSON.stringify(initial.launch_config)
+        : v[k] !== initial[k],
+    );
 
   const nameValid = isValidName(v.profile_name);
   const dimsValid =
@@ -63,7 +118,14 @@ export function ProfileForm({
   const submit = () => {
     if (!canSave) return;
     const changed: ProfileConfigInput = {};
-    for (const k of dirtyFields) (changed as any)[k] = (v as any)[k];
+    for (const k of dirtyFields) {
+      if (k === 'profile_name')    changed.profile_name  = v.profile_name;
+      if (k === 'window_width')    changed.window_width  = v.window_width;
+      if (k === 'window_height')   changed.window_height = v.window_height;
+      if (k === 'launch_args')     changed.launch_args   = v.launch_args;
+      if (k === 'note')            changed.note          = v.note;
+      if (k === 'launch_config')   changed.launch_config = v.launch_config;
+    }
     onSubmit(v, changed);
   };
 
@@ -89,42 +151,109 @@ export function ProfileForm({
       )}
 
       <div className="form-row">
-        <label>Window size (px)</label>
-        <div className="dim-pair">
-          <input
-            type="number"
-            min={320} max={7680}
-            value={v.window_width}
-            disabled={busy}
-            onChange={(e) => set('window_width', Number(e.target.value))}
-          />
-          <span>×</span>
-          <input
-            type="number"
-            min={320} max={7680}
-            value={v.window_height}
-            disabled={busy}
-            onChange={(e) => set('window_height', Number(e.target.value))}
-          />
-        </div>
-        {!dimsValid && (
-          <div className="field-hint error">Both dimensions must be 320–7680.</div>
+        <label>Window size</label>
+        <select
+          value={customSize ? 'Custom' : detectPreset(v.window_width, v.window_height)}
+          disabled={busy}
+          onChange={(e) => {
+            const label = e.target.value;
+            if (label === 'Custom') {
+              setCustomSize(true);
+              return;
+            }
+            const p = WINDOW_PRESETS.find((x) => x.label === label);
+            if (p) {
+              setCustomSize(false);
+              set('window_width', p.w);
+              set('window_height', p.h);
+            }
+          }}
+        >
+          {WINDOW_PRESETS.map((p) => (
+            <option key={p.label} value={p.label}>{p.label}</option>
+          ))}
+        </select>
+        {customSize && (
+          <div className="dim-pair" style={{ marginTop: 8 }}>
+            <input
+              type="number" min={320} max={7680}
+              value={v.window_width} disabled={busy}
+              onChange={(e) => set('window_width', Number(e.target.value))}
+            />
+            <span>×</span>
+            <input
+              type="number" min={320} max={7680}
+              value={v.window_height} disabled={busy}
+              onChange={(e) => set('window_height', Number(e.target.value))}
+            />
+          </div>
         )}
-        <div className="field-hint">Applies on next allocate. Xvfb screen + Chromium window both use this size.</div>
+        {!dimsValid && <div className="field-hint error">Both dimensions must be 320–7680.</div>}
+        <div className="field-hint">Applies on next allocate.</div>
       </div>
 
       <div className="form-row">
-        <label>Launch arguments</label>
+        <label>Language</label>
+        <select
+          value={v.launch_config.lang ?? ''}
+          disabled={busy}
+          onChange={(e) => {
+            const val = e.target.value;
+            setLC('lang', val === '' ? undefined : val);
+          }}
+        >
+          {LANG_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <div className="field-hint">Sets --lang. Takes effect on next allocate.</div>
+      </div>
+
+      <div className="form-row">
+        <label>Proxy</label>
+        <input
+          type="text"
+          value={v.launch_config.proxy ?? ''}
+          disabled={busy}
+          placeholder="e.g. socks5://1.2.3.4:1080  or  1.2.3.4:8080"
+          onChange={(e) => {
+            const val = e.target.value.trim();
+            setLC('proxy', val === '' ? undefined : val);
+          }}
+        />
+        <div className="field-hint">Sets --proxy-server. Leave empty for no proxy.</div>
+      </div>
+
+      <div className="form-row">
+        <label>Browser flags</label>
+        <div className="flag-list">
+          {BOOL_TOGGLES.map(({ key, label }) => (
+            <label key={key} className="flag-item">
+              <input
+                type="checkbox"
+                checked={!!(v.launch_config[key])}
+                disabled={busy}
+                onChange={(e) => setLC(key, e.target.checked ? true : undefined)}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        <div className="field-hint">Takes effect on next allocate.</div>
+      </div>
+
+      <div className="form-row">
+        <label>Additional arguments</label>
         <textarea
           value={v.launch_args}
           disabled={busy}
           rows={3}
           maxLength={4000}
-          placeholder="e.g. --disable-web-security --lang=en-US"
+          placeholder="e.g. --user-agent=my-ua --flag=value"
           onChange={(e) => set('launch_args', e.target.value)}
         />
         <div className="field-hint">
-          Whitespace-separated; appended after defaults. Quoted args not supported. Takes effect on next allocate.
+          Whitespace-separated; appended after all structured flags above. Quoted args not supported. Takes effect on next allocate.
         </div>
       </div>
 

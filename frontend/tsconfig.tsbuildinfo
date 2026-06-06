@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/api/browser.ts","./src/api/client.ts","./src/api/profiles.ts","./src/api/types.ts","./src/components/createprofilemodal.tsx","./src/components/profiledetail.tsx","./src/components/profileform.tsx","./src/components/toast.tsx","./src/lib/heartbeat.ts","./src/pages/dashboard.tsx","./src/pages/liveview.tsx"],"version":"5.9.3"}

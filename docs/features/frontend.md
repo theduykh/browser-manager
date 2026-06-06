@@ -66,6 +66,14 @@ The status row has a **Fullscreen** button. Clicking calls `wrapperRef.current.r
 - Escape, F11, or clicking **Exit fullscreen** all return to the embedded layout. We listen for `fullscreenchange` to keep state in sync — even when the user exits via OS-level shortcuts.
 - After every fullscreen transition we re-set `rfb.scaleViewport = true` (with a 50 ms tick) to force noVNC to recompute the scale against the new container size.
 
+### Toast notifications
+
+Every mutation (create, save, delete, reset, allocate, release) reports its outcome through a toast stack pinned to the **top-right** of the viewport. [Toast.tsx](../../frontend/src/components/Toast.tsx) exposes a `<ToastProvider>` (mounted once in [main.tsx](../../frontend/src/main.tsx), wrapping the app) and a `useToast()` hook returning `{ success, error, info }`.
+
+- Success toasts auto-dismiss after 4 s, errors after 6 s (they linger longer to stay readable). Clicking a toast dismisses it immediately.
+- The Dashboard wires `onSuccess` to `toast.success(...)` and a shared `handleErr` to `toast.error(...)`. `ApiError` is formatted as `CODE: message`; anything else is stringified.
+- This replaced the earlier single dismissible error banner on the detail panel. The inline `.error-banner` is still used by Live View for persistent connection errors (a disconnected socket is a state, not a transient event, so it is not a toast).
+
 ### Dev container
 
 `Dockerfile.frontend` runs `vite dev --host 0.0.0.0 --port 8080`. The frontend folder is bind-mounted from the host so file changes hot-reload. `node_modules` is a named volume so the install survives bind mounts (Linux container's `node_modules` would otherwise be shadowed by the empty Windows host folder).
@@ -82,6 +90,7 @@ Vite proxies `/api/*` to `http://backend:3000` via the Docker network. WebSocket
 - [frontend/src/pages/Dashboard.tsx](../../frontend/src/pages/Dashboard.tsx) — shell with sidebar list + detail panel, owns selection and mutations.
 - [frontend/src/components/CreateProfileModal.tsx](../../frontend/src/components/CreateProfileModal.tsx) — focused-modal for new profiles.
 - [frontend/src/components/ProfileDetail.tsx](../../frontend/src/components/ProfileDetail.tsx) — info table, editable name, action buttons.
+- [frontend/src/components/Toast.tsx](../../frontend/src/components/Toast.tsx) — `<ToastProvider>` + `useToast()` for top-right success/error notifications.
 - [frontend/src/pages/LiveView.tsx](../../frontend/src/pages/LiveView.tsx) — noVNC RFB embed + heartbeat.
 - [frontend/src/lib/heartbeat.ts](../../frontend/src/lib/heartbeat.ts) — `useHeartbeat(profileId)` hook.
 - [frontend/src/styles.css](../../frontend/src/styles.css) — flat dark theme, no framework.
@@ -97,7 +106,7 @@ Open `http://localhost:8088` after `docker compose up`. The flow:
 4. Live View renders the Chromium desktop. Mouse + keyboard work. Click **Release session** to stop, or **← Back** to return to the dashboard (the session stays running — release later from the Actions section).
 5. **Reset** brings stuck rows back to IDLE without restarting the backend.
 
-Error responses from the API surface in a dismissible banner above the detail panel.
+Each action shows a toast (top-right): a green success toast on completion, a red error toast (`CODE: message`) on failure. Allocate failures — the most common error, e.g. `NO_FREE_SLOT` or `ALLOCATE_FAILED` — surface this way too.
 
 ## Testing
 
@@ -112,7 +121,8 @@ End-to-end sanity:
 - Create a profile, allocate it, confirm Live View shows Chromium with about:blank.
 - Run a Playwright script from the Windows host against `http://localhost:<cdp_port>` and watch the page navigate in Live View.
 - Release from the Live View page; the row should flip back to IDLE in the dashboard within 3 seconds (next poll).
-- Stop the backend container with `docker stop browser-manager-backend`. The Live View shows a disconnect error; the Dashboard's profile list query starts failing (banner). Restart backend; everything recovers.
+- Stop the backend container with `docker stop browser-manager-backend`. The Live View shows a disconnect error (inline banner); any action you trigger (e.g. Allocate) fails with a red error toast top-right. Restart backend; the polling list query recovers on the next tick.
+- Trigger each action and confirm the matching toast: create → `Profile "<name>" created`, save → `Changes saved`, reset → `Profile reset to IDLE`, delete → `Profile deleted`, allocate → `Browser allocated`, release → `Browser released`.
 
 ## History
 
@@ -121,3 +131,4 @@ End-to-end sanity:
 - 2026-05-19 — Added `ProfileForm` shared by Create modal and Detail; fields: name, window size, launch args, note. See [profile-config](profile-config.md).
 - 2026-05-19 — Embedded Live View into the detail panel (no longer a full page); auto-shown when status is `IN_USE`. Action buttons moved to the top of the panel. App-level view switching removed.
 - 2026-05-19 — Live View sized for FHD: canvas takes the profile's natural aspect ratio with a viewport-height-based `maxWidth` so it fills almost all of a 1920×1080 detail column. Added native Fullscreen toggle (button + Escape).
+- 2026-06-06 — Added top-right toast notifications (`Toast.tsx`, `ToastProvider`, `useToast`) for all mutations. Success + error feedback for create/save/delete/reset/allocate/release. Replaced the Dashboard's single error banner; Live View keeps its inline connection-error banner.

@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   window_width  INTEGER NOT NULL DEFAULT 1920,
   window_height INTEGER NOT NULL DEFAULT 1080,
   launch_args   TEXT    NOT NULL DEFAULT '',
-  note          TEXT    NOT NULL DEFAULT ''
+  note          TEXT    NOT NULL DEFAULT '',
+  launch_config TEXT    NOT NULL DEFAULT '{}'
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slot_in_use

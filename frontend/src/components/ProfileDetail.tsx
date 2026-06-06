@@ -22,8 +22,14 @@ export function ProfileDetail({
     window_height: profile.window_height,
     launch_args:   profile.launch_args,
     note:          profile.note,
+    launch_config: (() => {
+      try {
+        const p = JSON.parse(profile.launch_config);
+        return (p !== null && typeof p === 'object' && !Array.isArray(p)) ? p : {};
+      } catch { return {}; }
+    })(),
   }), [profile.id, profile.profile_name, profile.window_width,
-       profile.window_height, profile.launch_args, profile.note]);
+       profile.window_height, profile.launch_args, profile.note, profile.launch_config]);
 
   const isInUse = profile.status === 'IN_USE';
   const isCorrupt = profile.status === 'CORRUPT';

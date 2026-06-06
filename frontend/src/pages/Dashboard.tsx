@@ -9,12 +9,13 @@ import type { Profile, ProfileConfigInput } from '../api/types';
 import { CreateProfileModal } from '../components/CreateProfileModal';
 import { ProfileDetail } from '../components/ProfileDetail';
 import { ProfileFormValues } from '../components/ProfileForm';
+import { useToast } from '../components/Toast';
 
 export function Dashboard() {
   const qc = useQueryClient();
+  const toast = useToast();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const profilesQ = useQuery({
     queryKey: ['profiles'],
@@ -39,27 +40,45 @@ export function Dashboard() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['profiles'] });
   const handleErr = (e: unknown) => {
-    setError(e instanceof ApiError ? `${e.code}: ${e.message}` : String(e));
+    toast.error(e instanceof ApiError ? `${e.code}: ${e.message}` : String(e));
   };
 
   const createM = useMutation({
     mutationFn: createProfile,
-    onSuccess: (p) => { invalidate(); setSelectedId(p.id); setShowCreate(false); },
+    onSuccess: (p) => {
+      invalidate();
+      setSelectedId(p.id);
+      setShowCreate(false);
+      toast.success(`Profile "${p.profile_name}" created`);
+    },
     onError: handleErr,
   });
-  const deleteM = useMutation({ mutationFn: deleteProfile, onSuccess: invalidate, onError: handleErr });
-  const resetM  = useMutation({ mutationFn: resetProfile,  onSuccess: invalidate, onError: handleErr });
+  const deleteM = useMutation({
+    mutationFn: deleteProfile,
+    onSuccess: () => { invalidate(); toast.success('Profile deleted'); },
+    onError: handleErr,
+  });
+  const resetM = useMutation({
+    mutationFn: resetProfile,
+    onSuccess: () => { invalidate(); toast.success('Profile reset to IDLE'); },
+    onError: handleErr,
+  });
   const updateM = useMutation({
     mutationFn: ({ id, patch }: { id: number; patch: ProfileConfigInput }) => updateProfile(id, patch),
-    onSuccess: invalidate, onError: handleErr,
+    onSuccess: () => { invalidate(); toast.success('Changes saved'); },
+    onError: handleErr,
   });
   const allocateM = useMutation({
     mutationFn: (profileId: number) => allocateBrowser(profileId),
     // Profile becomes IN_USE → ProfileDetail will render the embedded LiveView automatically on next poll.
-    onSuccess: invalidate,
+    onSuccess: () => { invalidate(); toast.success('Browser allocated'); },
     onError: handleErr,
   });
-  const releaseM = useMutation({ mutationFn: releaseBrowser, onSuccess: invalidate, onError: handleErr });
+  const releaseM = useMutation({
+    mutationFn: releaseBrowser,
+    onSuccess: () => { invalidate(); toast.success('Browser released'); },
+    onError: handleErr,
+  });
 
   const busy =
     createM.isPending || deleteM.isPending || resetM.isPending ||
@@ -101,11 +120,6 @@ export function Dashboard() {
       </aside>
 
       <main className="detail">
-        {error && (
-          <div className="error-banner" onClick={() => setError(null)}>
-            {error} <span style={{ float: 'right' }}>×</span>
-          </div>
-        )}
         {selected ? (
           <ProfileDetail
             profile={selected}

@@ -1,5 +1,16 @@
 export type ProfileStatus = 'IDLE' | 'IN_USE' | 'CORRUPT';
 
+export interface LaunchConfig {
+  lang?: string;
+  proxy?: string;
+  disableWebSecurity?: boolean;
+  disableExtensions?: boolean;
+  muteAudio?: boolean;
+  ignoreCertErrors?: boolean;
+  disableNotifications?: boolean;
+  disablePopupBlocking?: boolean;
+}
+
 export interface Profile {
   id: number;
   profile_name: string;
@@ -15,6 +26,7 @@ export interface Profile {
   window_height: number;
   launch_args: string;
   note: string;
+  launch_config: string;
 }
 
 export interface ProfileConfigInput {
@@ -23,6 +35,7 @@ export interface ProfileConfigInput {
   window_height?: number;
   launch_args?: string;
   note?: string;
+  launch_config?: LaunchConfig;
 }
 
 export interface AllocateResponse {

@@ -57,6 +57,41 @@ textarea {
   resize: vertical;
 }
 
+select {
+  font: inherit;
+  padding: 6px 10px;
+  background: #1c1f27;
+  color: #e6e6e6;
+  border: 1px solid #3a4150;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+}
+select:focus { outline: none; border-color: #2d6cdf; }
+select:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.flag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flag-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #c8cdd8;
+  cursor: pointer;
+  user-select: none;
+}
+.flag-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #2d6cdf;
+  flex-shrink: 0;
+}
+
 /* ---------- Profile form ---------- */
 .form-row { margin-bottom: 16px; max-width: 560px; }
 .form-row label {
@@ -204,7 +239,7 @@ textarea {
   flex-wrap: wrap;
 }
 
-/* ---------- Error banner ---------- */
+/* ---------- Error banner (inline, e.g. Live View connection errors) ---------- */
 .error-banner {
   background: #4a2222;
   border: 1px solid #b04a3a;
@@ -212,8 +247,50 @@ textarea {
   padding: 8px 12px;
   border-radius: 4px;
   margin-bottom: 16px;
-  cursor: pointer;
 }
+
+/* ---------- Toast notifications ---------- */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #3a4150;
+  background: #1c2029;
+  color: #e6e6e6;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  animation: toast-in 0.18s ease-out;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.toast-success { border-color: #2f7d4f; background: #14241b; }
+.toast-success .toast-icon { color: #6ee089; }
+.toast-error   { border-color: #b04a3a; background: #2a1715; }
+.toast-error .toast-icon { color: #ff8484; }
+.toast-info    { border-color: #2d6cdf; background: #14202f; }
+.toast-info .toast-icon { color: #79b8ff; }
+.toast-icon { font-weight: 700; flex-shrink: 0; }
+.toast-msg { flex: 1; word-break: break-word; }
+.toast-close { color: #9aa3b2; font-size: 16px; line-height: 1; flex-shrink: 0; }
+.toast:hover .toast-close { color: #fff; }
 
 /* ---------- Modal ---------- */
 .modal-backdrop {

@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3';
 import * as fs from 'fs';
 import * as path from 'path';
 import { config } from '../../config';
-import { ProfileRow, Profile, ProfileConfigInput, rowToProfile } from '../../types';
+import { ProfileRow, Profile, ProfileConfigInput, rowToProfile, parseLaunchConfig } from '../../types';
 import { releaseBrowser } from '../browser/orchestrator.service';
 import { cleanProfileLocks } from '../browser/profile-lock-cleaner';
 
@@ -20,6 +20,7 @@ function validateName(name: string): void {
 const MAX_DIM = 7680;
 const NOTE_MAX = 2000;
 const ARGS_MAX = 4000;
+const LC_MAX = 4000;
 
 export class InvalidNameError extends Error { code = 'INVALID_NAME' as const; }
 export class InvalidConfigError extends Error { code = 'INVALID_CONFIG' as const; }
@@ -32,6 +33,7 @@ function normalizeConfig(input: ProfileConfigInput): {
   window_height: number;
   launch_args: string;
   note: string;
+  launch_config: string;
 } {
   const w = input.window_width ?? 1920;
   const h = input.window_height ?? 1080;
@@ -48,7 +50,11 @@ function normalizeConfig(input: ProfileConfigInput): {
   if (note.length > NOTE_MAX)
     throw new InvalidConfigError(`note too long (>${NOTE_MAX} chars)`);
 
-  return { window_width: w, window_height: h, launch_args, note };
+  const lc = JSON.stringify(input.launch_config ?? {});
+  if (lc.length > LC_MAX) throw new InvalidConfigError(`launch_config too long (>${LC_MAX} chars)`);
+  const launch_config = lc;
+
+  return { window_width: w, window_height: h, launch_args, note, launch_config };
 }
 
 export function listProfiles(db: Database.Database): Profile[] {
@@ -67,16 +73,16 @@ export function createProfile(
   const existing = db.prepare(`SELECT id FROM profiles WHERE profile_name=?`).get(profileName);
   if (existing) throw new DuplicateProfileError(`profile_name '${profileName}' already exists`);
 
-  const { window_width, window_height, launch_args, note } = normalizeConfig(cfg);
+  const { window_width, window_height, launch_args, note, launch_config } = normalizeConfig(cfg);
 
   fs.mkdirSync(folder, { recursive: true });
   const row = db
     .prepare(
       `INSERT INTO profiles
-         (profile_name, folder_path, window_width, window_height, launch_args, note)
-       VALUES (?, ?, ?, ?, ?, ?) RETURNING *`,
+         (profile_name, folder_path, window_width, window_height, launch_args, note, launch_config)
+       VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *`,
     )
-    .get(profileName, folder, window_width, window_height, launch_args, note) as ProfileRow;
+    .get(profileName, folder, window_width, window_height, launch_args, note, launch_config) as ProfileRow;
   return rowToProfile(row);
 }
 
@@ -102,6 +108,7 @@ export function updateProfile(db: Database.Database, id: number, input: ProfileU
     window_height: input.window_height ?? row.window_height,
     launch_args:   input.launch_args   ?? row.launch_args,
     note:          input.note          ?? row.note,
+    launch_config: input.launch_config ?? parseLaunchConfig(row.launch_config),
   });
 
   let newFolder = row.folder_path;
@@ -118,11 +125,11 @@ export function updateProfile(db: Database.Database, id: number, input: ProfileU
     .prepare(
       `UPDATE profiles
          SET profile_name=?, folder_path=?,
-             window_width=?, window_height=?, launch_args=?, note=?,
+             window_width=?, window_height=?, launch_args=?, note=?, launch_config=?,
              last_active=CURRENT_TIMESTAMP
        WHERE id=? RETURNING *`,
     )
-    .get(newName, newFolder, cfg.window_width, cfg.window_height, cfg.launch_args, cfg.note, id) as ProfileRow;
+    .get(newName, newFolder, cfg.window_width, cfg.window_height, cfg.launch_args, cfg.note, cfg.launch_config, id) as ProfileRow;
   return rowToProfile(updated);
 }
 

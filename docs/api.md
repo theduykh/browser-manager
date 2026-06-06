@@ -85,14 +85,15 @@ Create a new profile and its on-disk folder.
 | `profile_name` | string | yes | — | Must match `^[A-Za-z0-9._@-]{1,64}$` (also rejects `.`, `..`, leading/trailing `.`). Also used as the folder name under `PROFILES_ROOT`. |
 | `window_width` | integer | no | `1920` | 320–7680. Sets both Xvfb screen and Chromium window size. |
 | `window_height` | integer | no | `1080` | 320–7680. |
-| `launch_args` | string | no | `""` | Whitespace-separated Chromium flags appended after the orchestrator's defaults. Quoted args are **not** supported. Max 4000 chars. |
+| `launch_args` | string | no | `""` | Whitespace-separated Chromium flags appended **after** all `launch_config` flags. Quoted args are **not** supported. Max 4000 chars. |
 | `note` | string | no | `""` | Free-form metadata; not used at launch. Max 2000 chars. |
+| `launch_config` | object | no | `{}` | Structured Chromium options (see [launch_config](#launch-config)). Stored as JSON; serialised form max 4000 chars. |
 
 **Response 201** — the created [Profile](#profile-shape).
 
 **Errors**
 - `400 INVALID_NAME` — `profile_name` fails regex.
-- `400 INVALID_CONFIG` — dimensions out of range or args/note too long.
+- `400 INVALID_CONFIG` — dimensions out of range, args/note too long, or `launch_config` serialises to more than 4000 chars.
 - `409 DUPLICATE_PROFILE` — name already in use.
 
 **Example**
@@ -104,7 +105,13 @@ curl -X POST http://localhost:3000/api/profiles \
     "profile_name": "checkout_flow",
     "window_width": 1280,
     "window_height": 720,
-    "launch_args": "--disable-web-security --lang=en-US",
+    "launch_config": {
+      "lang": "en-US",
+      "proxy": "http://proxy.internal:3128",
+      "disableWebSecurity": true,
+      "muteAudio": true
+    },
+    "launch_args": "--user-agent=custom-ua",
     "note": "Used by the checkout-flow regression suite."
   }'
 ```
@@ -261,8 +268,28 @@ interface Profile {
   window_height: number;
   launch_args: string;
   note: string;
+  launch_config: string;        // JSON string; see §4.1
 }
 ```
+
+### 4.1 launch_config <a name="launch-config"></a>
+
+A structured set of common Chromium options. On the wire it is sent as a JSON **object** on create/update, but stored and returned on the `Profile` as a JSON **string** (`"{}"` when empty). At allocate time each present key becomes a Chromium flag, injected **before** the raw `launch_args` tokens (so `launch_args` can still override).
+
+```ts
+interface LaunchConfig {
+  lang?: string;                 // → --lang=<value>
+  proxy?: string;                // → --proxy-server=<value>  (e.g. "1.2.3.4:8080" or "socks5://1.2.3.4:1080")
+  disableWebSecurity?: boolean;  // → --disable-web-security
+  disableExtensions?: boolean;   // → --disable-extensions
+  muteAudio?: boolean;           // → --mute-audio
+  ignoreCertErrors?: boolean;    // → --ignore-certificate-errors
+  disableNotifications?: boolean;// → --disable-notifications
+  disablePopupBlocking?: boolean;// → --disable-popup-blocking
+}
+```
+
+On `PATCH`, `launch_config` is replaced wholesale (not merged) — send the complete desired object. Unknown keys in the stored JSON are ignored, keeping the field forward-compatible.
 
 ---
 

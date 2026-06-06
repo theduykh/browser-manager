@@ -22,6 +22,7 @@ export function getDb(): Database.Database {
   ensureColumn(db, 'profiles', 'window_height', 'INTEGER NOT NULL DEFAULT 1080');
   ensureColumn(db, 'profiles', 'launch_args',   "TEXT NOT NULL DEFAULT ''");
   ensureColumn(db, 'profiles', 'note',          "TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, 'profiles', 'launch_config', "TEXT NOT NULL DEFAULT '{}'");
 
   _db = db;
   log('info', 'db.opened', { path: config.databasePath });

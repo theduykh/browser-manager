@@ -5,7 +5,7 @@ import {
   InvalidNameError, InvalidConfigError, DuplicateProfileError,
   ProfileNotFoundError, ProfileBusyError, ProfileUpdateInput,
 } from './profiles.service';
-import { ProfileConfigInput } from '../../types';
+import { ProfileConfigInput, LaunchConfig } from '../../types';
 
 function pickConfig(body: any): ProfileConfigInput {
   const out: ProfileConfigInput = {};
@@ -13,6 +13,9 @@ function pickConfig(body: any): ProfileConfigInput {
   if (body?.window_height !== undefined) out.window_height = Number(body.window_height);
   if (body?.launch_args   !== undefined) out.launch_args   = String(body.launch_args);
   if (body?.note          !== undefined) out.note          = String(body.note);
+  if (body?.launch_config !== undefined && typeof body.launch_config === 'object' && body.launch_config !== null) {
+    out.launch_config = body.launch_config as LaunchConfig;
+  }
   return out;
 }
 

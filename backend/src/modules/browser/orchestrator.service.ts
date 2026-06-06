@@ -3,7 +3,7 @@ import * as path from 'path';
 import type Database from 'better-sqlite3';
 import { config, portsForSlot } from '../../config';
 import { log } from '../../log';
-import { ProfileRow, Profile, rowToProfile } from '../../types';
+import { ProfileRow, Profile, rowToProfile, parseLaunchConfig } from '../../types';
 import {
   allocate as dbAllocate,
   releaseRow,
@@ -125,10 +125,20 @@ export async function allocateBrowser(
   const height = row.window_height ?? 1080;
   // Naive split: whitespace-separated tokens. Quoted args are not supported (document this).
   const extraArgs = (row.launch_args ?? '').split(/\s+/).filter((s) => s.length > 0);
+  const lc = parseLaunchConfig(row.launch_config ?? '{}');
+  const structuredArgs: string[] = [];
+  if (lc.lang)                  structuredArgs.push(`--lang=${lc.lang}`);
+  if (lc.proxy)                 structuredArgs.push(`--proxy-server=${lc.proxy}`);
+  if (lc.disableWebSecurity)    structuredArgs.push('--disable-web-security');
+  if (lc.disableExtensions)     structuredArgs.push('--disable-extensions');
+  if (lc.muteAudio)             structuredArgs.push('--mute-audio');
+  if (lc.ignoreCertErrors)      structuredArgs.push('--ignore-certificate-errors');
+  if (lc.disableNotifications)  structuredArgs.push('--disable-notifications');
+  if (lc.disablePopupBlocking)  structuredArgs.push('--disable-popup-blocking');
 
   log('info', 'allocate.start', {
     profile_id: row.id, slot_id: slotId, display, wsPort, cdpPort, width, height,
-    extra_args_count: extraArgs.length,
+    extra_args_count: extraArgs.length, structured_args_count: structuredArgs.length,
   });
 
   fs.mkdirSync(folder, { recursive: true });
@@ -193,7 +203,8 @@ export async function allocateBrowser(
         '--remote-allow-origins=*',
         `--window-size=${width},${height}`,
         '--window-position=0,0',
-        // user-supplied args last so they can override defaults
+        // structured args before raw args so raw args can override
+        ...structuredArgs,
         ...extraArgs,
         'about:blank',
       ],
