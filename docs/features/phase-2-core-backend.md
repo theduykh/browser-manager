@@ -9,7 +9,7 @@
 
 Phase 1 proved the four-process chain works manually. Phase 2 turns that into a programmable service: an HTTP API that allocates and releases real browser sessions, backed by SQLite for state and a persistent PID registry that survives backend crashes. Without this layer, the system cannot be driven from a test script or the future React dashboard.
 
-Spec reference: [yeu-cau.md §4, §5, §8](../../yeu-cau.md).
+Spec reference: [README.md — Architecture](../../README.md#architecture).
 
 ## Design
 

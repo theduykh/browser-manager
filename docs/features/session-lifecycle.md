@@ -9,7 +9,7 @@
 
 Allocated browsers consume an Xvfb display, two listening ports and ~300 MB of RAM each. A test client that crashes or forgets to `release` would leak these resources until manual intervention. Phase 3+5 add two cooperating mechanisms: a client-driven **heartbeat** that keeps a session alive, and a server-driven **zombie killer** that force-releases sessions whose heartbeat stops.
 
-Spec reference: [yeu-cau.md §5.3](../../yeu-cau.md).
+Spec reference: [README.md — Process Cleanup](../../README.md#process-cleanup).
 
 ## Design
 

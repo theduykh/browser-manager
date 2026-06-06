@@ -6,7 +6,7 @@ This file is loaded automatically by Claude Code in every session for this repo.
 
 A self-hosted system for managing multiple Chromium profiles to support parallel automated testing (Playwright). Each allocated browser runs headful inside Xvfb, streams to the browser via x11vnc + websockify + noVNC, and exposes CDP for remote test scripts. Single-host deployment, 10–50 parallel browsers, LAN-only.
 
-- Spec: [yeu-cau.md](yeu-cau.md) (Vietnamese original)
+- Spec: [README.md](README.md) (architecture, schema, port allocation)
 - Implementation plan: `~/.claude/plans/t-i-ang-mu-n-tri-n-linear-gosling.md`
 - HTTP API reference for integrators: [docs/api.md](docs/api.md)
 - Release packaging (tarball distribution): [docs/features/release-packaging.md](docs/features/release-packaging.md) — run `./release.ps1 -Version vX.Y.Z` to produce `release/dist/browser-manager-vX.Y.Z.zip`.
@@ -46,7 +46,7 @@ This is the single most important convention in this repo. If you change behavio
 
 ## Context
 
-Why this exists. What problem it solves. Link to the spec section in [yeu-cau.md](../../yeu-cau.md) if applicable.
+Why this exists. What problem it solves. Link to the relevant section in [README.md](README.md) if applicable.
 
 ## Design
 
@@ -103,7 +103,6 @@ browser-manager/
 ├── docs/features/      # One markdown file per feature — see above
 ├── Dockerfile.backend
 ├── docker-compose.yml
-├── yeu-cau.md          # Original Vietnamese spec
 └── CLAUDE.md           # This file
 ```
 

@@ -9,7 +9,7 @@
 
 When a profile gets stuck in `CORRUPT` (Chromium failed to launch, lock files left behind) or in `IN_USE` with a session that can't be released through the normal flow (PIDs gone, ports half-bound), the user needs a single button that brings the row back to a known-good state without restarting the whole backend.
 
-Spec reference: implied by [yeu-cau.md §5.3](../../yeu-cau.md) Zombie Killer; this is its manual counterpart.
+Spec reference: [README.md — Process Cleanup](../../README.md#process-cleanup); this is the manual counterpart to the Zombie Killer.
 
 ## Design
 

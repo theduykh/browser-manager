@@ -9,7 +9,7 @@
 
 Phase 4 puts a human-friendly face on the backend. Without it, the only way to manage profiles is curl — fine for the test runner, painful for a developer who wants to log in to a fresh profile or watch a flaky test in real time. The frontend gives two screens: a Dashboard for CRUD/allocate/release, and a Live View embedding the noVNC canvas of an allocated browser.
 
-Spec reference: [yeu-cau.md §6](../../yeu-cau.md).
+Spec reference: [README.md — Features](../../README.md#features).
 
 ## Design
 

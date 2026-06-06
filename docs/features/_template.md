@@ -7,7 +7,7 @@
 
 ## Context
 
-Why this exists. What problem it solves. Link to the spec section in [yeu-cau.md](../../yeu-cau.md) if applicable.
+Why this exists. What problem it solves. Link to the relevant section in [README.md](../../README.md) if applicable.
 
 ## Design
 

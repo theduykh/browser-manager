@@ -9,7 +9,7 @@
 
 The Browser Manager has no runtime substrate yet. Phase 1 establishes the monorepo layout, container image, and a manual smoke test that proves the four-process chain (Xvfb → x11vnc → websockify → Chromium with CDP) works inside the container. This is a prerequisite for all later phases — without a working container, no orchestration logic can be tested.
 
-Spec reference: [yeu-cau.md §2, §7](../../yeu-cau.md).
+Spec reference: [README.md — Architecture](../../README.md#architecture).
 
 ## Design
 
