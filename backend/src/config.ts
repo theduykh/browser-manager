@@ -6,6 +6,8 @@ export const config = {
   cdpWaitMs: Number(process.env.CDP_WAIT_MS ?? 10_000),
   maxSessionMs: Number(process.env.MAX_SESSION_MS ?? 30 * 60 * 1000),
   zombieScanMs: Number(process.env.ZOMBIE_SCAN_MS ?? 5 * 60 * 1000),
+  scriptStepTimeoutMs: Number(process.env.SCRIPT_STEP_TIMEOUT_MS ?? 15_000),
+  scriptRunConcurrency: Number(process.env.SCRIPT_RUN_CONCURRENCY ?? 5),
 } as const;
 
 export function portsForSlot(slotId: number) {

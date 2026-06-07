@@ -27,3 +27,24 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slot_in_use
   ON profiles(slot_id)
   WHERE status='IN_USE';
+
+CREATE TABLE IF NOT EXISTS scripts (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT    NOT NULL UNIQUE,
+  description TEXT    NOT NULL DEFAULT '',
+  steps       TEXT    NOT NULL DEFAULT '[]',   -- JSON: ScriptStep[]
+  created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Latest run report per script. The UNIQUE(script_id) keeps exactly one row per
+-- script (overwritten each run) — "no history". To enable history later: drop the
+-- UNIQUE constraint and stop upsert-replacing rows.
+CREATE TABLE IF NOT EXISTS script_runs (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  script_id   INTEGER NOT NULL UNIQUE REFERENCES scripts(id) ON DELETE CASCADE,
+  status      TEXT    NOT NULL,                -- 'passed' | 'failed' | 'partial'
+  report      TEXT    NOT NULL,                -- JSON: RunReport
+  started_at  TEXT    NOT NULL,
+  finished_at TEXT    NOT NULL
+);

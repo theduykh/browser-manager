@@ -85,6 +85,26 @@ Table: `profiles`
 | `cdp_port` | INTEGER | Chromium CDP port in use |
 | `last_active` | DATETIME | Last update timestamp (used by Zombie Killer) |
 
+Table: `scripts` — reusable automation scripts (see [docs/features/script-management.md](docs/features/script-management.md)).
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | INTEGER PK | Auto-increment |
+| `name` | TEXT | Unique script name |
+| `description` | TEXT | Free-form description |
+| `steps` | TEXT | JSON array of structured steps |
+| `created_at` / `updated_at` | DATETIME | Timestamps |
+
+Table: `script_runs` — latest run report per script (one row per `script_id`; overwritten each run — no history yet).
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | INTEGER PK | Auto-increment |
+| `script_id` | INTEGER | Unique FK → `scripts(id)` `ON DELETE CASCADE` |
+| `status` | TEXT | `passed` · `failed` · `partial` |
+| `report` | TEXT | JSON run report (per-profile, per-step) |
+| `started_at` / `finished_at` | DATETIME | Timestamps |
+
 ## Port Mapping
 
 | Port | Purpose |

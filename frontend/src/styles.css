@@ -114,9 +114,45 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 /* ---------- App shell ---------- */
+.app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  background: #14171e;
+  border-bottom: 1px solid #232831;
+}
+.top-nav .brand {
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 16px;
+  color: #c8cdd8;
+}
+.nav-link {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  color: #9aa3b2;
+}
+.nav-link:hover:not(:disabled) { background: #1c2029; }
+.nav-link.is-active { background: #1c2029; color: #e6e6e6; }
+.view-host {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
 .app-shell {
   display: flex;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -582,3 +618,188 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
   border-color: #000;
   border-radius: 0;
 }
+
+/* ---------- Scripts: section head ---------- */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.section-head h3 { margin: 0 0 10px; }
+
+/* ---------- Step editor ---------- */
+.step-editor { display: flex; flex-direction: column; gap: 8px; max-width: 820px; }
+.step-empty { color: #666; font-size: 13px; padding: 8px 0; }
+.step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  background: #14171e;
+  border: 1px solid #232831;
+  border-radius: 4px;
+}
+.step-index {
+  flex-shrink: 0;
+  width: 22px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #788294;
+}
+.step-type { flex-shrink: 0; width: 150px; }
+.step-fields { flex: 1; display: flex; gap: 6px; flex-wrap: wrap; }
+.step-fields input[type="text"] { flex: 1; min-width: 140px; }
+.step-fields input[type="number"] { width: 140px; }
+.step-controls { flex-shrink: 0; display: flex; gap: 4px; }
+.step-controls button { padding: 4px 8px; font-size: 12px; }
+.step-add { margin-top: 4px; }
+
+/* ---------- Run report ---------- */
+.run-report { display: flex; flex-direction: column; gap: 14px; max-width: 820px; }
+.run-overall { display: flex; align-items: center; gap: 10px; }
+.run-meta { font-size: 12px; color: #9aa3b2; }
+.run-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+.run-running, .run-allocating, .run-partial { background: #3a3214; color: #e0c66e; }
+.run-passed   { background: #1f3a2a; color: #6ee089; }
+.run-failed   { background: #4a2222; color: #ff8484; }
+.run-pending, .run-skipped { background: #21262f; color: #9aa3b2; }
+
+.run-target {
+  border: 1px solid #232831;
+  border-radius: 6px;
+  padding: 12px;
+  background: #14171e;
+}
+.run-target-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.run-target-name { font-weight: 600; }
+.run-tag {
+  font-size: 11px;
+  color: #9aa3b2;
+  border: 1px solid #3a4150;
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+.run-target-error {
+  background: #2a1715;
+  border: 1px solid #b04a3a;
+  color: #ffb8b0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.run-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.run-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  font-size: 13px;
+  border-radius: 3px;
+}
+.run-step-icon { width: 16px; text-align: center; flex-shrink: 0; }
+.run-step-type { width: 130px; flex-shrink: 0; color: #c8cdd8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.run-step-detail { flex: 1; color: #9aa3b2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-all; }
+.run-step-dur { flex-shrink: 0; color: #666; font-size: 11px; }
+.run-step-err { flex-basis: 100%; color: #ff8484; font-size: 12px; padding-left: 24px; }
+.run-step-passed  .run-step-icon { color: #6ee089; }
+.run-step-failed  { background: #2a1715; }
+.run-step-failed  .run-step-icon { color: #ff8484; }
+.run-step-running .run-step-icon { color: #e0c66e; }
+.run-step-skipped .run-step-icon,
+.run-step-pending .run-step-icon { color: #666; }
+.run-screenshot {
+  margin-top: 10px;
+  max-width: 100%;
+  border: 1px solid #232831;
+  border-radius: 4px;
+}
+
+/* ---------- Run modal: target picker ---------- */
+.run-target-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #232831;
+  border-radius: 4px;
+  padding: 6px;
+}
+.run-target-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.run-target-option:hover { background: #1c2029; }
+.run-target-option-name { flex: 1; }
+
+/* ---------- Quick run (profile detail) ---------- */
+.quick-run-bar { display: flex; gap: 8px; align-items: center; max-width: 560px; }
+.quick-run-bar select { flex: 1; }
+.quick-run-bar button { flex-shrink: 0; }
+
+/* ---------- Record panel ---------- */
+.modal-xl { width: 1100px; }
+.record-body { display: flex; gap: 16px; }
+.record-stage { flex: 1; min-width: 0; }
+.record-steps {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #232831;
+  border-radius: 6px;
+  background: #14171e;
+  max-height: 70vh;
+}
+.record-steps-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #232831;
+  font-size: 12px;
+  color: #9aa3b2;
+}
+.record-count { margin-left: auto; color: #788294; }
+.record-step-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.record-step-list li {
+  display: flex;
+  gap: 8px;
+  padding: 5px 6px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+.record-step-list li:nth-child(odd) { background: #181c24; }
+.record-step-type {
+  flex-shrink: 0;
+  width: 64px;
+  color: #79b8ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.record-step-detail { flex: 1; color: #9aa3b2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+.record-step-hint { color: #666; font-style: italic; }

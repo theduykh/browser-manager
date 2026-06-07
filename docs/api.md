@@ -302,6 +302,58 @@ Delete a group. Profiles in the group are **not** deleted — they become Ungrou
 
 ---
 
+### 3.14 Scripts — CRUD
+
+A **script** is a named, ordered list of structured [steps](#script-step-shape) that can be replayed against any profile. See [docs/features/script-management.md](features/script-management.md).
+
+- `GET /api/scripts` → **200** array of [Script](#script-shape) (each with a `last_run` summary or `null`).
+- `POST /api/scripts` — body `{ name, description?, steps? }` → **201** [Script](#script-shape).
+- `GET /api/scripts/:id` → **200** [Script](#script-shape).
+- `PATCH /api/scripts/:id` — body `{ name?, description?, steps? }` → **200** [Script](#script-shape).
+- `DELETE /api/scripts/:id` → **204** (cascades the run report).
+
+**Errors** — `400 INVALID_SCRIPT` (bad name/description/steps), `404 SCRIPT_NOT_FOUND`, `409 DUPLICATE_SCRIPT`.
+
+### 3.15 `POST /api/scripts/:id/run`
+
+Start an asynchronous run of the script against one or more profiles.
+
+**Request body**
+
+| Field | Type | Required | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `targets` | integer[] | yes | — | Profile ids. De-duplicated; must be non-empty. |
+| `autoAllocate` | boolean | no | `false` | IDLE targets are allocated (opened), run, then released. Without it, an IDLE target fails. IN_USE targets always run as-is and stay open. |
+| `stopOnError` | boolean | no | `true` | Stop a profile after its first failed step (remaining steps `skipped`). |
+
+**Response 202** — `{ "run_id": "<uuid>" }`. Poll §3.16 for progress.
+
+**Errors** — `400 BAD_ID`, `400 NO_TARGETS`, `404 SCRIPT_NOT_FOUND`.
+
+### 3.16 `GET /api/scripts/runs/:runId`
+
+Live run state from the in-memory registry (survives until process restart).
+
+**Response 200** — a [RunReport](#run-report-shape). **404 RUN_NOT_FOUND** if unknown.
+
+### 3.17 `GET /api/scripts/:id/report`
+
+The persisted **latest** report for a script (or `null` if it has never run).
+
+**Response 200** — [RunReport](#run-report-shape) or `null`.
+
+### 3.18 Recording
+
+Live-capture steps by driving an already-open profile (must be `IN_USE`).
+
+- `POST /api/scripts/record/start` — body `{ profile_id }` → **200** `{ recording_id }`.
+- `GET /api/scripts/record/:recordingId` → **200** `{ recordingId, profileId, profileName, status, steps }`.
+- `POST /api/scripts/record/:recordingId/stop` → **200** `{ steps }`.
+
+**Errors** — `400 BAD_PROFILE_ID`, `404 PROFILE_NOT_FOUND` / `RECORDING_NOT_FOUND`, `409 PROFILE_NOT_OPEN` / `ALREADY_RECORDING`.
+
+---
+
 ## 4. Profile shape <a name="profile-shape"></a>
 
 ```ts
@@ -360,6 +412,60 @@ interface LaunchConfig {
 
 On `PATCH`, `launch_config` is replaced wholesale (not merged) — send the complete desired object. Unknown keys in the stored JSON are ignored, keeping the field forward-compatible.
 
+### 4.2 Script shapes <a name="script-shape"></a>
+
+```ts
+interface Script {
+  id: number;
+  name: string;
+  description: string;
+  steps: ScriptStep[];
+  created_at: string;
+  updated_at: string;
+  last_run: { status: RunStatus; started_at: string; finished_at: string } | null;
+}
+```
+
+A **step** <a name="script-step-shape"></a> is a discriminated union; only the fields for its `type` are kept on save (`id` is generated server-side if omitted):
+
+```ts
+type ScriptStep =
+  | { id: string; type: 'navigate'; url: string }
+  | { id: string; type: 'click'; selector: string }
+  | { id: string; type: 'fill'; selector: string; value: string }
+  | { id: string; type: 'press'; selector?: string; key: string }
+  | { id: string; type: 'select'; selector: string; value: string }
+  | { id: string; type: 'check' | 'uncheck'; selector: string }
+  | { id: string; type: 'waitForSelector'; selector: string; timeoutMs?: number }
+  | { id: string; type: 'waitForTimeout'; ms: number };
+```
+
+A **run report** <a name="run-report-shape"></a> aggregates per-profile, per-step results:
+
+```ts
+type RunStatus    = 'running' | 'passed' | 'failed' | 'partial';
+type StepStatus   = 'pending' | 'running' | 'passed' | 'failed' | 'skipped';
+type TargetStatus = 'pending' | 'allocating' | 'running' | 'passed' | 'failed';
+
+interface RunReport {
+  runId: string;
+  scriptId: number;
+  scriptName: string;
+  status: RunStatus;
+  startedAt: string;
+  finishedAt: string | null;
+  targets: {
+    profileId: number;
+    profileName: string;
+    status: TargetStatus;
+    allocated: boolean;            // true if this run opened the profile (and will release it)
+    steps: { stepId: string; type: string; status: StepStatus; error?: string; durationMs?: number }[];
+    error?: string;
+    screenshot?: string;           // data:image/jpeg;base64,... captured on failure
+  }[];
+}
+```
+
 ---
 
 ## 5. Error code reference
@@ -382,6 +488,14 @@ On `PATCH`, `launch_config` is replaced wholesale (not merged) — send the comp
 | `NO_FREE_SLOT` | 503 | allocate | every slot in 1..`MAX_SLOTS` is taken |
 | `ALLOCATE_FAILED` | 500 | allocate | Chromium did not come up; profile auto-marked `CORRUPT` |
 | `RELEASE_FAILED` | 500 | release | unexpected exception during teardown |
+| `INVALID_SCRIPT` | 400 | scripts | name/description/steps fail validation |
+| `SCRIPT_NOT_FOUND` | 404 | scripts | no script with that id |
+| `DUPLICATE_SCRIPT` | 409 | scripts | script name already in use |
+| `NO_TARGETS` | 400 | scripts run | `targets` missing or empty |
+| `RUN_NOT_FOUND` | 404 | scripts run | unknown `run_id` (or lost on restart) |
+| `PROFILE_NOT_OPEN` | 409 | scripts record | recording requires the profile to be `IN_USE` |
+| `ALREADY_RECORDING` | 409 | scripts record | a recording is already active for that profile |
+| `RECORDING_NOT_FOUND` | 404 | scripts record | unknown `recording_id` |
 | `INTERNAL` | 500 | global | unhandled — check backend logs |
 
 ---

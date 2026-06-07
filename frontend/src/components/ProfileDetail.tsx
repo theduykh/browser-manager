@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { Group, Profile, ProfileConfigInput } from '../api/types';
 import { ProfileForm, ProfileFormValues } from './ProfileForm';
 import { LiveView } from '../pages/LiveView';
+import { QuickRunScript } from './QuickRunScript';
 
 interface Props {
   profile: Profile;
@@ -83,6 +84,13 @@ export function ProfileDetail({
             windowWidth={profile.window_width}
             windowHeight={profile.window_height}
           />
+        </div>
+      )}
+
+      {isInUse && (
+        <div className="detail-section">
+          <h3>Run script</h3>
+          <QuickRunScript profileId={profile.id} />
         </div>
       )}
 

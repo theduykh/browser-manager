@@ -57,3 +57,84 @@ export interface AllocateResponse {
   cdp_endpoint: string;
   ws_url: string;
 }
+
+export type StepType =
+  | 'navigate'
+  | 'click'
+  | 'fill'
+  | 'press'
+  | 'select'
+  | 'check'
+  | 'uncheck'
+  | 'waitForSelector'
+  | 'waitForTimeout';
+
+// Flat shape (superset of the backend's per-type fields) for ease of editing.
+// The backend validates and keeps only the fields relevant to each type on save.
+export interface ScriptStep {
+  id: string;
+  type: StepType;
+  url?: string;
+  selector?: string;
+  value?: string;
+  key?: string;
+  timeoutMs?: number;
+  ms?: number;
+}
+
+export type RunStatus = 'running' | 'passed' | 'failed' | 'partial';
+export type StepStatus = 'pending' | 'running' | 'passed' | 'failed' | 'skipped';
+export type TargetStatus = 'pending' | 'allocating' | 'running' | 'passed' | 'failed';
+
+export interface ScriptRunSummary {
+  status: RunStatus;
+  started_at: string;
+  finished_at: string;
+}
+
+export interface Script {
+  id: number;
+  name: string;
+  description: string;
+  steps: ScriptStep[];
+  created_at: string;
+  updated_at: string;
+  last_run: ScriptRunSummary | null;
+}
+
+export interface StepResult {
+  stepId: string;
+  type: StepType;
+  status: StepStatus;
+  error?: string;
+  durationMs?: number;
+}
+
+export interface TargetResult {
+  profileId: number;
+  profileName: string;
+  status: TargetStatus;
+  allocated: boolean;
+  steps: StepResult[];
+  error?: string;
+  screenshot?: string;
+}
+
+export interface RunReport {
+  runId: string;
+  scriptId: number;
+  scriptName: string;
+  status: RunStatus;
+  startedAt: string;
+  finishedAt: string | null;
+  targets: TargetResult[];
+}
+
+export interface Recording {
+  recordingId: string;
+  profileId: number;
+  profileName: string;
+  status: 'recording' | 'stopped' | 'error';
+  steps: ScriptStep[];
+  error?: string;
+}
