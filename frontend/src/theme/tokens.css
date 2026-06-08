@@ -1,0 +1,196 @@
+/* ============================================================
+   Browser Manager — Design Tokens
+   Linear/Vercel devtools aesthetic · dark-first, indigo accent
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;450;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---- Type ---- */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  /* ---- Radii ---- */
+  --r-xs: 5px;
+  --r-sm: 7px;
+  --r-md: 9px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 999px;
+
+  /* ---- Spacing scale (used inline where helpful) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --fast: 120ms;
+  --med: 200ms;
+
+  /* ---- Brand accent (indigo) — constant across themes ---- */
+  --accent: #6366f1;
+  --accent-hover: #717bf4;
+  --accent-press: #5457e0;
+  --accent-fg: #ffffff;
+
+  /* ---- Status hues (constant; tints differ per theme) ---- */
+  --c-idle: #8b8f9a;       /* neutral slate — available */
+  --c-inuse: #10b981;      /* emerald — live/running    */
+  --c-corrupt: #f43f5e;    /* rose — failed/corrupt     */
+  --c-alloc: #f59e0b;      /* amber — transitional      */
+  --c-info: #38bdf8;       /* sky — running step/info   */
+}
+
+/* ===================== DARK (default) ===================== */
+[data-theme="dark"] {
+  --bg: #08080a;
+  --bg-grid: rgba(255,255,255,.022);
+  --surface: #0e0e11;
+  --surface-2: #141418;
+  --surface-3: #1a1a20;
+  --surface-hover: #18181d;
+  --rail: #0b0b0e;
+
+  --border: rgba(255,255,255,.08);
+  --border-2: rgba(255,255,255,.13);
+  --border-strong: rgba(255,255,255,.2);
+
+  --text: #f2f2f4;
+  --text-2: #a4a4ad;
+  --text-3: #6d6d77;
+  --text-faint: #4a4a52;
+
+  --accent-tint: rgba(99,102,241,.16);
+  --accent-line: rgba(99,102,241,.4);
+
+  --idle-tint: rgba(139,143,154,.14);
+  --idle-line: rgba(139,143,154,.32);
+  --inuse-tint: rgba(16,185,129,.15);
+  --inuse-line: rgba(16,185,129,.4);
+  --inuse-text: #2ee6a6;
+  --corrupt-tint: rgba(244,63,94,.15);
+  --corrupt-line: rgba(244,63,94,.4);
+  --corrupt-text: #fb7185;
+  --alloc-tint: rgba(245,158,11,.15);
+  --alloc-line: rgba(245,158,11,.4);
+  --alloc-text: #fbbf24;
+  --info-tint: rgba(56,189,248,.15);
+  --info-text: #56c9f8;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.45);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.55);
+  --shadow-pop: 0 24px 64px rgba(0,0,0,.65);
+  --scrim: rgba(0,0,0,.62);
+
+  color-scheme: dark;
+}
+
+/* ===================== LIGHT ===================== */
+[data-theme="light"] {
+  --bg: #f6f7f9;
+  --bg-grid: rgba(0,0,0,.025);
+  --surface: #ffffff;
+  --surface-2: #fafafb;
+  --surface-3: #f1f2f4;
+  --surface-hover: #f5f6f8;
+  --rail: #fbfbfc;
+
+  --border: rgba(15,18,30,.09);
+  --border-2: rgba(15,18,30,.14);
+  --border-strong: rgba(15,18,30,.24);
+
+  --text: #14151a;
+  --text-2: #5a5d68;
+  --text-3: #8a8d98;
+  --text-faint: #b3b6bf;
+
+  --accent-tint: rgba(99,102,241,.1);
+  --accent-line: rgba(99,102,241,.35);
+
+  --idle-tint: rgba(120,124,135,.12);
+  --idle-line: rgba(120,124,135,.3);
+  --inuse-tint: rgba(16,185,129,.12);
+  --inuse-line: rgba(16,185,129,.4);
+  --inuse-text: #07845d;
+  --corrupt-tint: rgba(244,63,94,.1);
+  --corrupt-line: rgba(244,63,94,.38);
+  --corrupt-text: #d61f44;
+  --alloc-tint: rgba(245,158,11,.13);
+  --alloc-line: rgba(245,158,11,.42);
+  --alloc-text: #b06f06;
+  --info-tint: rgba(56,189,248,.13);
+  --info-text: #0b87c4;
+
+  --shadow-sm: 0 1px 2px rgba(15,18,30,.06);
+  --shadow-md: 0 4px 16px rgba(15,18,30,.1);
+  --shadow-lg: 0 16px 44px rgba(15,18,30,.14);
+  --shadow-pop: 0 24px 60px rgba(15,18,30,.2);
+  --scrim: rgba(15,18,30,.4);
+
+  color-scheme: light;
+}
+
+/* ===================== Base ===================== */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv01','cv02','ss01';
+  letter-spacing: -0.011em;
+}
+#root { height: 100%; }
+
+::selection { background: var(--accent-tint); }
+
+/* Scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--border-strong); background-clip: padding-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+.mono { font-family: var(--font-mono); font-feature-settings: 'zero','ss01'; }
+
+/* Focus ring */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-xs); }
+
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
+
+/* ---- Animations ---- */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes livepulse {
+  0%   { box-shadow: 0 0 0 0 var(--inuse-line); }
+  70%  { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+@keyframes dotpulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+@keyframes fadeup {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastin {
+  from { opacity: 0; transform: translateX(16px) scale(.98); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(2400%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+}

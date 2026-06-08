@@ -25,6 +25,10 @@ export function getDb(): Database.Database {
   ensureColumn(db, 'profiles', 'launch_config', "TEXT NOT NULL DEFAULT '{}'");
   ensureColumn(db, 'profiles', 'group_id', 'INTEGER');
   ensureColumn(db, 'profiles', 'tags',     "TEXT NOT NULL DEFAULT '[]'");
+  // created_at needs special handling: SQLite forbids a CURRENT_TIMESTAMP default in
+  // ALTER TABLE ADD COLUMN, so add it nullable and backfill legacy rows from last_active.
+  // New inserts set it explicitly (see createProfile), so the missing default is harmless.
+  ensureCreatedAt(db);
 
   _db = db;
   log('info', 'db.opened', { path: config.databasePath });
@@ -37,6 +41,14 @@ function ensureColumn(db: Database.Database, table: string, column: string, decl
     db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${decl}`);
     log('info', 'db.column.added', { table, column });
   }
+}
+
+function ensureCreatedAt(db: Database.Database) {
+  const cols = db.pragma('table_info(profiles)') as { name: string }[];
+  if (cols.find((c) => c.name === 'created_at')) return;
+  db.exec(`ALTER TABLE profiles ADD COLUMN created_at TEXT`);
+  db.exec(`UPDATE profiles SET created_at = last_active WHERE created_at IS NULL`);
+  log('info', 'db.column.added', { table: 'profiles', column: 'created_at' });
 }
 
 export function closeDb() {

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   pids          TEXT,
   allocated_at  TEXT,
   last_active   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   window_width  INTEGER NOT NULL DEFAULT 1920,
   window_height INTEGER NOT NULL DEFAULT 1080,
   launch_args   TEXT    NOT NULL DEFAULT '',

@@ -803,3 +803,59 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .record-step-detail { flex: 1; color: #9aa3b2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
 .record-step-hint { color: #666; font-style: italic; }
+
+/* ============================================================
+   Theme bridge — re-map legacy className controls (forms, modals,
+   toasts, tag inputs) onto design tokens so reused components stay
+   theme-aware and visually coherent with the new ui/ primitives.
+   The ui/ components use inline styles, so these rules don't touch them.
+   ============================================================ */
+body { background: var(--bg); color: var(--text); font-family: var(--font-sans); }
+
+button {
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border-2); border-radius: var(--r-sm);
+}
+button:hover:not(:disabled) { background: var(--surface-hover); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+button.danger { background: #f43f5e; border-color: #f43f5e; color: #fff; }
+button.danger:hover:not(:disabled) { background: #e11d48; }
+button.ghost { background: transparent; border-color: var(--border-2); color: var(--text-2); }
+button.ghost:hover:not(:disabled) { background: var(--surface-2); }
+
+input[type="text"], input[type="number"], textarea, select {
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border-2); border-radius: var(--r-sm);
+}
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+  border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.flag-item { color: var(--text-2); }
+.flag-item input[type="checkbox"] { accent-color: var(--accent); }
+.form-row label { color: var(--text-2); }
+.field-hint { color: var(--text-3); }
+.field-hint.error { color: var(--corrupt-text); }
+.dim-pair { color: var(--text-3); }
+
+.tag-chip { background: var(--accent-tint); color: var(--text); border: 1px solid var(--accent-line); }
+.tag-chip-remove { color: var(--text-2); }
+.tag-chip-remove:hover:not(:disabled) { color: var(--text); }
+.tag-input { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); }
+.tag-input:focus-within { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-tint); }
+.tag-suggest { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-sm); box-shadow: var(--shadow-lg); }
+.tag-suggest-item { color: var(--text-2); }
+.tag-suggest-item.is-active { background: var(--accent); color: var(--accent-fg); }
+.tag-suggest-item strong { color: var(--accent); }
+.tag-suggest-item.is-active strong { color: var(--accent-fg); }
+
+.modal-backdrop { background: var(--scrim); }
+.modal { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r-lg); box-shadow: var(--shadow-pop); }
+
+.toast { background: var(--surface); border: 1px solid var(--border-2); color: var(--text); border-radius: var(--r-md); box-shadow: var(--shadow-lg); }
+.toast-success { border-color: var(--inuse-line); }
+.toast-success .toast-icon { color: var(--inuse-text); }
+.toast-error { border-color: var(--corrupt-line); }
+.toast-error .toast-icon { color: var(--corrupt-text); }
+.toast-info { border-color: var(--accent-line); }
+.toast-info .toast-icon { color: var(--accent); }

@@ -24,3 +24,4 @@ profiles_data/*
 .idea/
 *.swp
 release/
+docs/ui/ui-sample

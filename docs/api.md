@@ -66,6 +66,17 @@ Liveness probe.
 
 ---
 
+### 3.1b `GET /api/capacity`
+
+Slot-pool utilization, for dashboard meters. `total` is `MAX_SLOTS`; `used` is the count of `IN_USE` profiles.
+
+**Response 200**
+```json
+{ "total": 50, "used": 12, "free": 38 }
+```
+
+---
+
 ### 3.2 `GET /api/profiles`
 
 List every profile, ordered by id ascending.
@@ -370,6 +381,7 @@ interface Profile {
   pids: number[] | null;        // [xvfb, x11vnc, websockify, chromium, socat]
   allocated_at: string | null;  // ISO-8601, set at allocate, cleared at release
   last_active: string;          // ISO-8601, refreshed by heartbeat / allocate
+  created_at: string;           // ISO-8601, set at profile creation
   window_width: number;
   window_height: number;
   launch_args: string;

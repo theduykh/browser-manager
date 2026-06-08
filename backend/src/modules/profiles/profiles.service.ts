@@ -105,8 +105,8 @@ export function createProfile(
   const row = db
     .prepare(
       `INSERT INTO profiles
-         (profile_name, folder_path, window_width, window_height, launch_args, note, launch_config, group_id, tags)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+         (profile_name, folder_path, window_width, window_height, launch_args, note, launch_config, group_id, tags, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP) RETURNING *`,
     )
     .get(profileName, folder, window_width, window_height, launch_args, note, launch_config, groupId, tags) as ProfileRow;
   return rowToProfile(row);

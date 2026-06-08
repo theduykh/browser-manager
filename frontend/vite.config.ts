@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const backendTarget = process.env.VITE_BACKEND_URL ?? 'http://backend:3000';
+// In Docker, compose sets VITE_BACKEND_URL=http://backend:3000. For host `npm run dev`
+// the env is unset, so fall back to the published backend port on localhost.
+const backendTarget = process.env.VITE_BACKEND_URL ?? 'http://localhost:3000';
 
 export default defineConfig({
   plugins: [react()],

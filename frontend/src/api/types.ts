@@ -29,6 +29,7 @@ export interface Profile {
   pids: number[] | null;
   allocated_at: string | null;
   last_active: string;
+  created_at: string;
   window_width: number;
   window_height: number;
   launch_args: string;
@@ -47,6 +48,12 @@ export interface ProfileConfigInput {
   launch_config?: LaunchConfig;
   group_id?: number | null;
   tags?: string[];
+}
+
+export interface Capacity {
+  total: number;
+  used: number;
+  free: number;
 }
 
 export interface AllocateResponse {

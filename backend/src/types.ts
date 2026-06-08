@@ -48,6 +48,7 @@ export interface ProfileRow {
   pids: string | null;
   allocated_at: string | null;
   last_active: string;
+  created_at: string;
   window_width: number;
   window_height: number;
   launch_args: string;

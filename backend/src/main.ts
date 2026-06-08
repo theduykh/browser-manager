@@ -17,6 +17,14 @@ function buildApp(db: ReturnType<typeof getDb>) {
     res.json({ status: 'ok', phase: 2, ts: new Date().toISOString() });
   });
 
+  app.get('/api/capacity', (_req, res) => {
+    const { used } = db
+      .prepare(`SELECT COUNT(*) AS used FROM profiles WHERE status='IN_USE'`)
+      .get() as { used: number };
+    const total = config.maxSlots;
+    res.json({ total, used, free: Math.max(0, total - used) });
+  });
+
   app.use('/api/profiles', profilesRouter(db));
   app.use('/api/groups', groupsRouter(db));
   app.use('/api/browser', browserRouter(db));
