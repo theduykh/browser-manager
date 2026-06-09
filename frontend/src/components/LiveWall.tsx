@@ -5,7 +5,7 @@ import { listGroups } from '../api/groups';
 import { allocateBrowser, releaseBrowser } from '../api/browser';
 import { ApiError } from '../api/client';
 import type { Profile } from '../api/types';
-import { Icon, type IconName, IconButton, StatusDot, CapacityMeter, Button, Input, TagChip, Modal } from '../ui';
+import { Icon, type IconName, IconButton, StatusDot, Button, Input, TagChip, Modal } from '../ui';
 import { LiveStream, type LiveStreamHandle } from './LiveStream';
 import { useToast } from './Toast';
 
@@ -15,10 +15,9 @@ type GroupNameFn = (id: number | null) => string;
 interface Props {
   capacity: { used: number; total: number } | null;
   onOpen: (profileId: number) => void;
-  onClose: () => void;
 }
 
-export function LiveWall({ capacity, onOpen, onClose }: Props) {
+export function LiveWall({ capacity, onOpen }: Props) {
   const qc = useQueryClient();
   const toast = useToast();
   const [cols, setCols] = useState(3);
@@ -117,21 +116,8 @@ export function LiveWall({ capacity, onOpen, onClose }: Props) {
   const tileHeight = cols === 4 ? 200 : cols === 3 ? 250 : 320;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 150, background: 'var(--bg)', display: 'flex', flexDirection: 'column', animation: 'fadeup var(--fast) var(--ease)' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 24px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
-        <Icon name="monitor" size={20} style={{ color: 'var(--accent)' }} />
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Live Wall</h2>
-        <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{live.length} active stream{live.length !== 1 ? 's' : ''}</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--inuse-text)' }}><StatusDot status="IN_USE" size={7} />polling 3s</span>
-        <div style={{ flex: 1 }} />
-        {capacity && <CapacityMeter used={capacity.used} total={capacity.total} compact />}
-        <div style={{ display: 'flex', gap: 2, padding: 3, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', marginLeft: 8 }}>
-          {[2, 3, 4].map((n) => <IconButton key={n} name="grid" size={n === 2 ? 13 : n === 3 ? 15 : 17} active={cols === n} onClick={() => setCols(n)} style={{ width: 28, height: 26 }} title={`${n} columns`} />)}
-        </div>
-        <IconButton name="x" size={18} onClick={onClose} title="Close" />
-      </header>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 24px', borderBottom: '1px solid var(--border)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg)', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 24px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative' }}>
           <Icon name="grid" size={13} style={{ position: 'absolute', left: 9, top: 9, color: 'var(--text-3)', pointerEvents: 'none' }} />
           <select
@@ -178,6 +164,11 @@ export function LiveWall({ capacity, onOpen, onClose }: Props) {
         </div>
 
         {filterActive && <Button variant="ghost" size="sm" icon="x" onClick={resetFilters}>Reset</Button>}
+        <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 4px' }} />
+
+        <div style={{ display: 'flex', gap: 2, padding: 3, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
+          {[2, 3, 4].map((n) => <IconButton key={n} name="grid" size={n === 2 ? 13 : n === 3 ? 15 : 17} active={cols === n} onClick={() => setCols(n)} style={{ width: 28, height: 26 }} title={`${n} columns`} />)}
+        </div>
 
         <div style={{ flex: 1 }} />
 
@@ -185,6 +176,7 @@ export function LiveWall({ capacity, onOpen, onClose }: Props) {
         <Button variant="outline" size="sm" danger icon="stop" disabled={filtered.length === 0 || busy} onClick={() => setReleaseTargets(filtered)}>
           {filterActive ? 'Release all shown' : 'Release all'} <span className="mono" style={{ marginLeft: 2 }}>{filtered.length}</span>
         </Button>
+
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>

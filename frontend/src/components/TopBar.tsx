@@ -1,20 +1,22 @@
 import { Icon, type IconName, IconButton, CapacityMeter } from '../ui';
 import { useTheme } from '../theme/ThemeProvider';
 
-export type Tab = 'profiles' | 'scripts';
+export type Tab = 'profiles' | 'scripts' | 'livewall';
 
 interface Props {
   tab: Tab;
   setTab: (t: Tab) => void;
   capacity: { used: number; total: number } | null;
+  liveCount?: number;
 }
 
 const NAV: [Tab, string, IconName][] = [
   ['profiles', 'Profiles', 'layers'],
   ['scripts', 'Scripts', 'play'],
+  ['livewall', 'Live Wall', 'monitor'],
 ];
 
-export function TopBar({ tab, setTab, capacity }: Props) {
+export function TopBar({ tab, setTab, capacity, liveCount = 0 }: Props) {
   const { theme, toggleTheme } = useTheme();
   return (
     <header style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 18px', height: 54, borderBottom: '1px solid var(--border)', background: 'var(--surface)', flex: 'none' }}>
@@ -44,6 +46,7 @@ export function TopBar({ tab, setTab, capacity }: Props) {
               }}
             >
               <Icon name={ic} size={15} style={{ color: active ? 'var(--accent)' : 'var(--text-3)' }} />{label}
+              {k === 'livewall' && liveCount > 0 && <span className="mono" style={{ fontSize: 10.5, color: 'var(--inuse-text)', background: 'var(--surface-2)', borderRadius: 99, padding: '0 6px', marginLeft: -2 }}>{liveCount}</span>}
             </button>
           );
         })}

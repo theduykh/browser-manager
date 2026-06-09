@@ -1,4 +1,4 @@
-import { Icon, StatusDot, IconButton, Button, type UiStatus } from '../ui';
+import { Icon, StatusDot, IconButton, type UiStatus } from '../ui';
 import type { Density, Sort, SortKey, StatusFilter, ViewMode } from './profiles.types';
 
 interface Props {
@@ -12,8 +12,6 @@ interface Props {
   setStatusFilter: (s: StatusFilter) => void;
   sort: Sort;
   setSort: (fn: (s: Sort) => Sort) => void;
-  liveCount: number;
-  onLiveWall: () => void;
 }
 
 const CHIPS: { k: StatusFilter; label: string }[] = [
@@ -30,7 +28,7 @@ const SORTS: { k: SortKey; label: string }[] = [
   { k: 'lastUsed', label: 'Last used' },
 ];
 
-export function ProfilesToolbar({ count, total, view, setView, density, setDensity, statusFilter, setStatusFilter, sort, setSort, liveCount, onLiveWall }: Props) {
+export function ProfilesToolbar({ count, total, view, setView, density, setDensity, statusFilter, setStatusFilter, sort, setSort }: Props) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
       <div style={{ display: 'flex', gap: 6, padding: 3, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
@@ -55,10 +53,6 @@ export function ProfilesToolbar({ count, total, view, setView, density, setDensi
 
       {/* Right controls stay together on one row (no wrap) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-        <Button variant="outline" size="sm" icon="monitor" onClick={onLiveWall}>
-          Live Wall
-          {liveCount > 0 && <span className="mono" style={{ color: 'var(--inuse-text)', marginLeft: 2 }}>{liveCount}</span>}
-        </Button>
 
         <div style={{ position: 'relative', display: 'inline-flex' }} title="Sort by">
           <Icon name="sort" size={13} style={{ position: 'absolute', left: 8, top: 7, color: 'var(--text-3)', pointerEvents: 'none' }} />

@@ -4,7 +4,9 @@ import { listScripts, createScript, updateScript, deleteScript } from '../api/sc
 import { listProfiles } from '../api/profiles';
 import { ApiError } from '../api/client';
 import type { ScriptStep } from '../api/types';
+import { ScriptRail } from '../components/ScriptRail';
 import { ScriptDetail } from '../components/ScriptDetail';
+import { Icon, Modal, Input, Button } from '../ui';
 import { useToast } from '../components/Toast';
 
 type Patch = { name?: string; description?: string; steps?: ScriptStep[] };
@@ -57,55 +59,37 @@ export function Scripts() {
   const busy = createM.isPending || updateM.isPending || deleteM.isPending;
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h2>Scripts</h2>
-          <div className="sidebar-header-actions">
-            <button className="primary" onClick={() => setShowCreate(true)}>+ New script</button>
-          </div>
-        </div>
+    <>
+      <ScriptRail
+        scripts={scripts}
+        selectedId={selectedId}
+        loading={scriptsQ.isLoading}
+        onSelect={setSelectedId}
+        onNew={() => setShowCreate(true)}
+      />
 
-        <div className="sidebar-list">
-          {scripts.length === 0 && (
-            <div className="sidebar-empty">{scriptsQ.isLoading ? 'Loading…' : 'No scripts yet.'}</div>
-          )}
-          {scripts.map((s) => (
-            <div
-              key={s.id}
-              className={`sidebar-item ${s.id === selectedId ? 'active' : ''}`}
-              onClick={() => setSelectedId(s.id)}
-            >
-              <div className="sidebar-item-main">
-                <span className="name">{s.name}</span>
-                {s.last_run && <span className={`run-pill run-${s.last_run.status}`}>{s.last_run.status}</span>}
-              </div>
-              <div className="sidebar-item-meta">
-                <span>{s.steps.length} step(s)</span>
+      {selected ? (
+        <ScriptDetail
+          key={selected.id}
+          script={selected}
+          profiles={profiles}
+          busy={busy}
+          onBack={() => setSelectedId(null)}
+          onSave={(patch) => updateM.mutate({ id: selected.id, patch })}
+          onDelete={() => deleteM.mutate(selected.id)}
+        />
+      ) : (
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'var(--bg)' }}>
+          <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--text-3)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <Icon name="play" size={26} style={{ color: 'var(--text-faint)' }} />
+              <div style={{ marginTop: 10 }}>
+                {scriptsQ.isLoading ? 'Loading…' : scripts.length === 0 ? 'No scripts yet — click "+" to get started.' : 'Select a script from the left.'}
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="sidebar-footer">{scripts.length} script(s)</div>
-      </aside>
-
-      <main className="detail">
-        {selected ? (
-          <ScriptDetail
-            key={selected.id}
-            script={selected}
-            profiles={profiles}
-            busy={busy}
-            onSave={(patch) => updateM.mutate({ id: selected.id, patch })}
-            onDelete={() => deleteM.mutate(selected.id)}
-          />
-        ) : (
-          <div className="detail-empty">
-            {scripts.length === 0 ? 'Click "New script" to get started.' : 'Select a script from the left.'}
           </div>
-        )}
-      </main>
+        </main>
+      )}
 
       {showCreate && (
         <NewScriptModal
@@ -116,7 +100,7 @@ export function Scripts() {
           onSubmit={() => { if (newName.trim()) createM.mutate(newName.trim()); }}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -129,32 +113,31 @@ function NewScriptModal({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onCancel]);
-
   return (
-    <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
-      <div className="modal" role="dialog" aria-modal="true">
-        <h2>New script</h2>
-        <div className="form-row">
-          <label>Name</label>
-          <input
-            type="text"
-            autoFocus
-            value={name}
-            onChange={(e) => onName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) onSubmit(); }}
-            placeholder="e.g. Login flow"
-          />
-        </div>
-        <div className="modal-actions">
-          <button className="ghost" onClick={onCancel}>Cancel</button>
-          <button className="primary" disabled={busy || !name.trim()} onClick={onSubmit}>Create</button>
-        </div>
+    <Modal
+      title="New script"
+      subtitle="Create a new automation script"
+      icon="play"
+      width={440}
+      onClose={onCancel}
+      footer={(
+        <>
+          <div style={{ flex: 1 }} />
+          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button variant="primary" icon="plus" disabled={busy || !name.trim()} onClick={onSubmit}>Create</Button>
+        </>
+      )}
+    >
+      <div>
+        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>Name</label>
+        <Input
+          autoFocus
+          placeholder="e.g. Login flow"
+          value={name}
+          onChange={(e) => onName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) onSubmit(); }}
+        />
       </div>
-    </div>
+    </Modal>
   );
 }

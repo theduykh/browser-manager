@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group, LaunchConfig, Profile } from '../api/types';
 import {
   Icon, StatusDot, StatusPill, Button, IconButton, TagChip, KV, SectionCard,
-  timeAgo, STATUS, type UiStatus,
+  timeAgo, STATUS, type UiStatus, Modal,
 } from '../ui';
 import { LiveStream } from './LiveStream';
 import { ProfileForm, type ProfileFormValues, type ProfileFormHandle } from './ProfileForm';
@@ -50,6 +50,7 @@ export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, al
 
   const formRef = useRef<ProfileFormHandle>(null);
   const [canSaveConfig, setCanSaveConfig] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
     <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg)' }}>
@@ -70,7 +71,7 @@ export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, al
             {status === 'ALLOCATING' && <Button variant="default" disabled style={{ cursor: 'wait' }}><StatusDot status="ALLOCATING" />Allocating…</Button>}
             {status === 'IN_USE' && <Button variant="default" danger icon="stop" disabled={busy} onClick={() => onAction('release')}>Release</Button>}
             {status === 'CORRUPT' && <Button variant="primary" danger icon="refresh" disabled={busy} onClick={() => onAction('reset')}>Reset profile</Button>}
-            <IconButton name="trash" size={16} title={isInUse ? 'Release before deleting' : 'Delete profile'} disabled={busy || isInUse} onClick={() => { if (confirm(`Delete '${p.profile_name}'?`)) onAction('delete'); }} />
+            <IconButton name="trash" size={16} title={isInUse ? 'Release before deleting' : 'Delete profile'} danger disabled={busy || isInUse} onClick={() => setShowDeleteConfirm(true)} />
           </div>
         </div>
       </header>
@@ -149,6 +150,38 @@ export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, al
           />
         </SectionCard>
       </div>
+      {showDeleteConfirm && (
+        <Modal
+          title="Delete profile?"
+          subtitle="This action cannot be undone."
+          icon="alert"
+          width={440}
+          onClose={() => setShowDeleteConfirm(false)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                danger
+                icon="trash"
+                disabled={busy}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  onAction('delete');
+                }}
+              >
+                Delete
+              </Button>
+            </>
+          }
+        >
+          <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
+            Are you sure you want to permanently delete the profile <strong style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{p.profile_name}</strong>? This will remove all configuration, cookies, and local browser data.
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

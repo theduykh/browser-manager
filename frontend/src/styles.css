@@ -629,7 +629,7 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
 .section-head h3 { margin: 0 0 10px; }
 
 /* ---------- Step editor ---------- */
-.step-editor { display: flex; flex-direction: column; gap: 8px; max-width: 820px; }
+.step-editor { display: flex; flex-direction: column; gap: 8px; }
 .step-empty { color: #666; font-size: 13px; padding: 8px 0; }
 .step-row {
   display: flex;
@@ -659,7 +659,7 @@ select:disabled { opacity: 0.4; cursor: not-allowed; }
 .step-add { margin-top: 4px; }
 
 /* ---------- Run report ---------- */
-.run-report { display: flex; flex-direction: column; gap: 14px; max-width: 820px; }
+.run-report { display: flex; flex-direction: column; gap: 14px; }
 .run-overall { display: flex; align-items: center; gap: 10px; }
 .run-meta { font-size: 12px; color: #9aa3b2; }
 .run-pill {
