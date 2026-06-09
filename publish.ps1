@@ -52,7 +52,55 @@ Write-Host "--> Pushing frontend images to Docker Hub..." -ForegroundColor Yello
 docker push "${Username}/${frontendImg}:${Version}"
 docker push "${Username}/${frontendImg}:latest"
 
+# Zip packaging block
+$distDir     = Join-Path $repoRoot 'release/dist'
+$stageDir    = Join-Path $distDir  "browser-manager-public-$Version"
+$zipPath     = Join-Path $distDir  "browser-manager-public-$Version.zip"
+
+Write-Host "--> Preparing public release zip package..." -ForegroundColor Yellow
+if (Test-Path $stageDir) { Remove-Item -Recurse -Force $stageDir }
+New-Item -ItemType Directory -Force -Path $stageDir | Out-Null
+
+# 1. Process and copy docker-compose.prod.yml -> docker-compose.yml
+$composeContent = Get-Content (Join-Path $repoRoot 'docker-compose.prod.yml') -Raw
+$composeContent = $composeContent -replace "theduykh/browser-manager-backend:latest", "${Username}/${backendImg}:${Version}"
+$composeContent = $composeContent -replace "theduykh/browser-manager-frontend:latest", "${Username}/${frontendImg}:${Version}"
+$composeContent | Set-Content (Join-Path $stageDir 'docker-compose.yml') -NoNewline
+
+# 2. Process and copy start scripts (remove -f flag as docker-compose.yml is default in zip)
+$startBatContent = Get-Content (Join-Path $repoRoot 'start.bat') -Raw
+$startBatContent = $startBatContent -replace '-f docker-compose.prod.yml ', ''
+$startBatContent | Set-Content (Join-Path $stageDir 'start.bat') -NoNewline
+
+$startShContent = Get-Content (Join-Path $repoRoot 'start.sh') -Raw
+$startShContent = $startShContent -replace '-f docker-compose.prod.yml ', ''
+$startShContent | Set-Content (Join-Path $stageDir 'start.sh') -NoNewline
+
+# 3. Copy INSTALL.md
+if (Test-Path (Join-Path $repoRoot 'release/INSTALL.md')) {
+    Copy-Item -Path (Join-Path $repoRoot 'release/INSTALL.md') -Destination (Join-Path $stageDir 'INSTALL.md')
+}
+
+# 4. Stamp VERSION
+"$Version`n$(Get-Date -Format o)" | Set-Content -Path (Join-Path $stageDir 'VERSION') -NoNewline
+
+# 5. Compress into zip
+Write-Host "--> Zipping package to $zipPath..." -ForegroundColor Yellow
+if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+Compress-Archive -Path (Join-Path $stageDir '*') -DestinationPath $zipPath -CompressionLevel Optimal
+
+$zipSize = [math]::Round((Get-Item $zipPath).Length / 1MB, 2)
+if ($zipSize -eq 0) {
+    $zipSize = [math]::Round((Get-Item $zipPath).Length / 1KB, 2)
+    $sizeStr = "$zipSize KB"
+} else {
+    $sizeStr = "$zipSize MB"
+}
+
 Write-Host ""
-Write-Host "==> Successfully published to Docker Hub!" -ForegroundColor Green
-Write-Host "    Backend: ${Username}/${backendImg}:${Version}"
-Write-Host "    Frontend: ${Username}/${frontendImg}:${Version}"
+Write-Host "==> Successfully published and packaged!" -ForegroundColor Green
+Write-Host "    Backend Image:  ${Username}/${backendImg}:${Version}"
+Write-Host "    Frontend Image: ${Username}/${frontendImg}:${Version}"
+Write-Host "    Release Zip:    $zipPath ($sizeStr)"
+Write-Host "    Send this lightweight zip to your users."
+

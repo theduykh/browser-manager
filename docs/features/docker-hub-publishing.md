@@ -29,7 +29,7 @@ We also provide `docker-compose.prod.yml` which points to these public images, a
 
 - [publish.ps1](../../publish.ps1) — PowerShell script to build, tag, and push images to Docker Hub.
 - [docker-compose.prod.yml](../../docker-compose.prod.yml) — Production Compose configuration referencing Docker Hub public images.
-- [start.ps1](../../start.ps1) — Startup helper for Windows.
+- [start.bat](../../start.bat) — Startup helper for Windows.
 - [start.sh](../../start.sh) — Startup helper for macOS/Linux.
 
 ## API / Usage
@@ -59,7 +59,7 @@ To build and push images:
 To deploy the application using the published public images, you can use the startup helper scripts:
 ```bash
 # Windows
-./start.ps1
+start.bat
 
 # macOS / Linux
 chmod +x start.sh

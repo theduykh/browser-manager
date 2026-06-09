@@ -12,3 +12,5 @@ echo -e "\033[33m👉 Backend API Status:    http://localhost:3000/health\033[0m
 echo -e "\033[36m====================================================================\033[0m"
 echo -e "\033[90mTo view real-time logs, run: docker compose logs -f\033[0m"
 echo ""
+read -n 1 -s -r -p "Press any key to continue . . ."
+echo ""
