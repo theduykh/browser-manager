@@ -9,6 +9,7 @@ export { Field } from './Field';
 export { Input } from './Input';
 export { KV } from './KV';
 export { Modal } from './Modal';
+export { ImageLightbox } from './ImageLightbox';
 export { SectionCard } from './SectionCard';
 export { CapacityMeter } from './CapacityMeter';
 export { STATUS, type UiStatus, type StatusMeta } from './status';

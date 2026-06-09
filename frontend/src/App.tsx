@@ -22,16 +22,16 @@ export function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <TopBar
-        tab={tab}
-        setTab={setTab}
-        capacity={capacity}
-        liveCount={capacity?.used ?? 0}
-        onLiveWall={() => setLiveWall(true)}
-      />
+      <TopBar tab={tab} setTab={setTab} capacity={capacity} />
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         {tab === 'profiles'
-          ? <Dashboard focusProfileId={focusProfileId} onFocusConsumed={() => setFocusProfileId(null)} />
+          ? (
+            <Dashboard
+              focusProfileId={focusProfileId}
+              onFocusConsumed={() => setFocusProfileId(null)}
+              onOpenLiveWall={() => setLiveWall(true)}
+            />
+          )
           : <Scripts />}
       </div>
       {liveWall && <LiveWall capacity={capacity} onOpen={openFromWall} onClose={() => setLiveWall(false)} />}

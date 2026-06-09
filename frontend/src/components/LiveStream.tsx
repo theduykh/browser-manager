@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type CSSProperties } from 'react';
 // @ts-ignore — @novnc/novnc exports RFB as its root entry ("exports": "./core/rfb.js").
 import RFB from '@novnc/novnc';
 import { useHeartbeat } from '../lib/heartbeat';
@@ -22,7 +22,14 @@ const BADGE: Record<ConnState, { label: string; dot: string }> = {
   disconnected: { label: 'OFFLINE',    dot: '#8b8f9a' },
 };
 
-export function LiveStream({ profileId, wsPort, windowWidth, windowHeight, compact }: Props) {
+export interface LiveStreamHandle {
+  requestFullscreen: () => void;
+}
+
+export const LiveStream = forwardRef<LiveStreamHandle, Props>(function LiveStream(
+  { profileId, wsPort, windowWidth, windowHeight, compact },
+  ref,
+) {
   const wrapRef = useRef<HTMLDivElement>(null);          // fullscreen target
   const canvasHostRef = useRef<HTMLDivElement>(null);
   const rfbRef = useRef<unknown>(null);
@@ -81,6 +88,10 @@ export function LiveStream({ profileId, wsPort, windowWidth, windowHeight, compa
       setError(`Fullscreen failed: ${String(err)}`);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    requestFullscreen: () => { if (!document.fullscreenElement) void wrapRef.current?.requestFullscreen?.(); },
+  }));
 
   const badge = BADGE[conn];
   const overlayPill: CSSProperties = {
@@ -157,4 +168,4 @@ export function LiveStream({ profileId, wsPort, windowWidth, windowHeight, compa
       </div>
     </div>
   );
-}
+});

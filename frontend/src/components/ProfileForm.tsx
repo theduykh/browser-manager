@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import type { Group, LaunchConfig, ProfileConfigInput } from '../api/types';
 import { TagInput } from './TagInput';
 
@@ -34,6 +34,13 @@ interface Props {
   onSubmit: (values: ProfileFormValues, changed: ProfileConfigInput) => void;
   onCancel?: () => void;
   showNameField?: boolean;       // hide name field in some contexts
+  twoCol?: boolean;              // lay short fields out in 2 columns (wide detail panel)
+  hideActions?: boolean;         // hide the built-in Save/Cancel bar (parent renders its own)
+  onCanSaveChange?: (canSave: boolean) => void;
+}
+
+export interface ProfileFormHandle {
+  submit: () => void;
 }
 
 const WINDOW_PRESETS = [
@@ -82,10 +89,10 @@ function detectPreset(w: number, h: number): string {
   return WINDOW_PRESETS.find((p) => p.w === w && p.h === h && p.w !== 0)?.label ?? 'Custom';
 }
 
-export function ProfileForm({
+export const ProfileForm = forwardRef<ProfileFormHandle, Props>(function ProfileForm({
   initial, busy, groups, tagSuggestions, lockName, saveLabel = 'Save',
-  onSubmit, onCancel, showNameField = true,
-}: Props) {
+  onSubmit, onCancel, showNameField = true, twoCol = false, hideActions = false, onCanSaveChange,
+}, ref) {
   const [v, setV] = useState<ProfileFormValues>(initial);
   // 'Custom' is a user intent, not derivable from dimensions alone: 1920×1080 matches a
   // preset yet the user may still want manual entry. Track it as explicit state.
@@ -145,8 +152,12 @@ export function ProfileForm({
     onSubmit(v, changed);
   };
 
+  useImperativeHandle(ref, () => ({ submit }));
+  useEffect(() => { onCanSaveChange?.(canSave); }, [canSave, onCanSaveChange]);
+
   return (
     <div>
+      <div className={twoCol ? 'pf-grid' : undefined}>
       {showNameField && (
         <div className="form-row">
           <label>Name</label>
@@ -265,7 +276,7 @@ export function ProfileForm({
         <div className="field-hint">Sets --proxy-server. Leave empty for no proxy.</div>
       </div>
 
-      <div className="form-row">
+      <div className="form-row pf-full">
         <label>Browser flags</label>
         <div className="flag-list">
           {BOOL_TOGGLES.map(({ key, label }) => (
@@ -283,7 +294,7 @@ export function ProfileForm({
         <div className="field-hint">Takes effect on next allocate.</div>
       </div>
 
-      <div className="form-row">
+      <div className="form-row pf-full">
         <label>Additional arguments</label>
         <textarea
           value={v.launch_args}
@@ -298,7 +309,7 @@ export function ProfileForm({
         </div>
       </div>
 
-      <div className="form-row">
+      <div className="form-row pf-full">
         <label>Note</label>
         <textarea
           value={v.note}
@@ -310,14 +321,18 @@ export function ProfileForm({
         />
       </div>
 
-      <div className="form-actions">
-        {onCancel && (
-          <button className="ghost" onClick={onCancel} disabled={busy}>Cancel</button>
-        )}
-        <button className="primary" onClick={submit} disabled={!canSave}>
-          {busy ? '…' : saveLabel}
-        </button>
       </div>
+
+      {!hideActions && (
+        <div className="form-actions">
+          {onCancel && (
+            <button className="ghost" onClick={onCancel} disabled={busy}>Cancel</button>
+          )}
+          <button className="primary" onClick={submit} disabled={!canSave}>
+            {busy ? '…' : saveLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+});

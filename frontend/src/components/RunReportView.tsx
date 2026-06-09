@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { RunReport, ScriptStep, StepStatus } from '../api/types';
 import { stepSummary } from '../lib/steps';
+import { ImageLightbox } from '../ui';
 
 const STEP_ICON: Record<StepStatus, string> = {
   pending: '○', running: '◐', passed: '✓', failed: '✕', skipped: '–',
@@ -12,6 +14,7 @@ interface Props {
 
 export function RunReportView({ report, steps }: Props) {
   const byId = new Map((steps ?? []).map((s) => [s.id, s]));
+  const [zoomed, setZoomed] = useState<string | null>(null);
 
   return (
     <div className="run-report">
@@ -46,10 +49,19 @@ export function RunReportView({ report, steps }: Props) {
           </ol>
 
           {t.screenshot && (
-            <img className="run-screenshot" src={t.screenshot} alt="Failure screenshot" />
+            <img
+              className="run-screenshot"
+              src={t.screenshot}
+              alt="Failure screenshot"
+              title="Click to view full screen"
+              onClick={() => setZoomed(t.screenshot!)}
+              style={{ cursor: 'zoom-in' }}
+            />
           )}
         </div>
       ))}
+
+      {zoomed && <ImageLightbox src={zoomed} alt="Failure screenshot" onClose={() => setZoomed(null)} />}
     </div>
   );
 }

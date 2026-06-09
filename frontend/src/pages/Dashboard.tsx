@@ -23,11 +23,12 @@ import { useToast } from '../components/Toast';
 interface Props {
   focusProfileId: number | null;
   onFocusConsumed: () => void;
+  onOpenLiveWall: () => void;
 }
 
 const STATUS_ORDER: Record<Profile['status'], number> = { IN_USE: 0, CORRUPT: 1, IDLE: 2 };
 
-export function Dashboard({ focusProfileId, onFocusConsumed }: Props) {
+export function Dashboard({ focusProfileId, onFocusConsumed, onOpenLiveWall }: Props) {
   const qc = useQueryClient();
   const toast = useToast();
 
@@ -142,6 +143,7 @@ export function Dashboard({ focusProfileId, onFocusConsumed }: Props) {
   const groupsBusy = createGroupM.isPending || renameGroupM.isPending || deleteGroupM.isPending;
   const busy = createM.isPending || deleteM.isPending || resetM.isPending || updateM.isPending || allocateM.isPending || releaseM.isPending;
   const allocatingId = allocateM.isPending ? (allocateM.variables ?? null) : null;
+  const liveCount = profiles.filter((p) => p.status === 'IN_USE').length;
 
   const doAction = (action: ProfileAction, p: Profile) => {
     if (action === 'allocate') allocateM.mutate(p.id);
@@ -194,6 +196,8 @@ export function Dashboard({ focusProfileId, onFocusConsumed }: Props) {
             setStatusFilter={setStatusFilter}
             sort={sort}
             setSort={setSort}
+            liveCount={liveCount}
+            onLiveWall={onOpenLiveWall}
           />
           <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>
             {filtered.length === 0 ? (

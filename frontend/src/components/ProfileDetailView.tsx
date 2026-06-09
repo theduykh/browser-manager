@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group, LaunchConfig, Profile } from '../api/types';
 import {
   Icon, StatusDot, StatusPill, Button, IconButton, TagChip, KV, SectionCard,
   timeAgo, STATUS, type UiStatus,
 } from '../ui';
 import { LiveStream } from './LiveStream';
-import { ProfileForm, type ProfileFormValues } from './ProfileForm';
+import { ProfileForm, type ProfileFormValues, type ProfileFormHandle } from './ProfileForm';
 import { QuickRunScript } from './QuickRunScript';
 import type { ProfileAction } from './profiles.types';
 
@@ -27,6 +27,10 @@ function parseLC(raw: string): LaunchConfig {
   } catch { return {}; }
 }
 
+// Live hero fills most of the viewport (minus top bar + detail header) so the open
+// profile is operable without fullscreen; clamped so it stays sane on tiny/huge screens.
+const HERO_H = 'clamp(440px, calc(100vh - 165px), 1180px)';
+
 export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, allocating, onBack, onAction, onSave }: Props) {
   const status: UiStatus = allocating ? 'ALLOCATING' : p.status;
   const groupName = (id: number | null) => (id === null ? 'Ungrouped' : groups.find((g) => g.id === id)?.name ?? 'Ungrouped');
@@ -43,6 +47,9 @@ export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, al
   }), [p.id, p.profile_name, p.window_width, p.window_height, p.launch_args, p.note, p.launch_config, p.group_id, JSON.stringify(p.tags)]);
 
   const isInUse = status === 'IN_USE';
+
+  const formRef = useRef<ProfileFormHandle>(null);
+  const [canSaveConfig, setCanSaveConfig] = useState(false);
 
   return (
     <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg)' }}>
@@ -68,51 +75,27 @@ export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, al
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 372px', gap: 20, padding: 24, alignItems: 'start', maxWidth: 1500, margin: '0 auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
-          {isInUse && p.ws_port ? (
-            <div style={{ height: 520 }}>
-              <LiveStream profileId={p.id} wsPort={p.ws_port} windowWidth={p.window_width} windowHeight={p.window_height} />
-            </div>
-          ) : status === 'ALLOCATING' ? (
-            <div style={{ height: 520 }}><AllocatingHero /></div>
-          ) : (
-            <EmptyHero corrupt={status === 'CORRUPT'} busy={busy} onAction={onAction} />
-          )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: 24, maxWidth: 1840, margin: '0 auto', width: '100%' }}>
+        {/* HERO — live view as large as possible (full width, ~viewport tall) so the
+            user can operate the open profile without entering fullscreen. */}
+        {isInUse && p.ws_port ? (
+          <div style={{ height: HERO_H }}>
+            <LiveStream profileId={p.id} wsPort={p.ws_port} windowWidth={p.window_width} windowHeight={p.window_height} />
+          </div>
+        ) : status === 'ALLOCATING' ? (
+          <div style={{ height: HERO_H }}><AllocatingHero /></div>
+        ) : (
+          <EmptyHero corrupt={status === 'CORRUPT'} busy={busy} onAction={onAction} />
+        )}
 
-          <SectionCard title="Run a script" icon="play" action={!isInUse ? <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Profile must be allocated</span> : null}>
-            {isInUse
-              ? <QuickRunScript profileId={p.id} />
-              : <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Allocate this profile to run a saved script against it.</div>}
-          </SectionCard>
+        <SectionCard title="Run a script" icon="play" action={!isInUse ? <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Profile must be allocated</span> : null}>
+          {isInUse
+            ? <QuickRunScript profile={p} />
+            : <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Allocate this profile to run or record a script against it.</div>}
+        </SectionCard>
 
-          <SectionCard title="Configuration" icon="settings">
-            <ProfileForm
-              key={p.id}
-              initial={initial}
-              busy={busy}
-              groups={groups}
-              tagSuggestions={tagSuggestions}
-              lockName={isInUse}
-              saveLabel="Save changes"
-              onSubmit={(_v, changed) => onSave(changed)}
-            />
-          </SectionCard>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 80 }}>
-          {status === 'CORRUPT' && (
-            <div style={{ padding: 16, borderRadius: 'var(--r-lg)', background: 'var(--corrupt-tint)', border: '1px solid var(--corrupt-line)' }}>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <Icon name="alert" size={18} style={{ color: 'var(--corrupt-text)', flex: 'none', marginTop: 1 }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--corrupt-text)' }}>Last launch failed</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3, lineHeight: 1.5 }}>The user-data dir may be locked. Reset cleans the lock files and returns the profile to IDLE; disk data is preserved.</div>
-                </div>
-              </div>
-            </div>
-          )}
-
+        {/* Runtime + Profile — moved below Run a script, side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: isInUse ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)', gap: 20, alignItems: 'start' }}>
           {isInUse && (
             <SectionCard title="Runtime" icon="server" action={<span style={{ fontSize: 11, color: 'var(--inuse-text)', display: 'inline-flex', alignItems: 'center', gap: 5 }}><StatusDot status="IN_USE" size={6} />active</span>}>
               <KV k="Slot" v={p.slot_id != null ? `#${p.slot_id}` : '—'} />
@@ -139,6 +122,32 @@ export function ProfileDetailView({ profile: p, groups, tagSuggestions, busy, al
             </div>
           </SectionCard>
         </div>
+
+        {/* Configuration — full width, short fields in 2 columns */}
+        <SectionCard
+          title="Configuration"
+          icon="settings"
+          action={(
+            <Button size="sm" variant="primary" icon="check" disabled={!canSaveConfig} onClick={() => formRef.current?.submit()}>
+              Save changes
+            </Button>
+          )}
+        >
+          <ProfileForm
+            ref={formRef}
+            key={p.id}
+            initial={initial}
+            busy={busy}
+            groups={groups}
+            tagSuggestions={tagSuggestions}
+            lockName={isInUse}
+            saveLabel="Save changes"
+            twoCol
+            hideActions
+            onCanSaveChange={setCanSaveConfig}
+            onSubmit={(_v, changed) => onSave(changed)}
+          />
+        </SectionCard>
       </div>
     </div>
   );

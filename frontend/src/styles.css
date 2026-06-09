@@ -859,3 +859,14 @@ input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:foc
 .toast-error .toast-icon { color: var(--corrupt-text); }
 .toast-info { border-color: var(--accent-line); }
 .toast-info .toast-icon { color: var(--accent); }
+
+/* ProfileForm 2-column layout (wide Configuration panel in profile detail).
+   Short fields pair up; wide fields (.pf-full) span the row. */
+.pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; align-items: start; }
+.pf-grid > .form-row { max-width: none; }
+.pf-grid > .form-row.pf-full { grid-column: 1 / -1; }
+.pf-grid .flag-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; }
+@media (max-width: 720px) {
+  .pf-grid { grid-template-columns: 1fr; }
+  .pf-grid .flag-list { grid-template-columns: 1fr; }
+}

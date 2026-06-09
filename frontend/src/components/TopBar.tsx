@@ -1,4 +1,4 @@
-import { Icon, type IconName, Button, IconButton, CapacityMeter } from '../ui';
+import { Icon, type IconName, IconButton, CapacityMeter } from '../ui';
 import { useTheme } from '../theme/ThemeProvider';
 
 export type Tab = 'profiles' | 'scripts';
@@ -7,8 +7,6 @@ interface Props {
   tab: Tab;
   setTab: (t: Tab) => void;
   capacity: { used: number; total: number } | null;
-  liveCount: number;
-  onLiveWall: () => void;
 }
 
 const NAV: [Tab, string, IconName][] = [
@@ -16,7 +14,7 @@ const NAV: [Tab, string, IconName][] = [
   ['scripts', 'Scripts', 'play'],
 ];
 
-export function TopBar({ tab, setTab, capacity, liveCount, onLiveWall }: Props) {
+export function TopBar({ tab, setTab, capacity }: Props) {
   const { theme, toggleTheme } = useTheme();
   return (
     <header style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 18px', height: 54, borderBottom: '1px solid var(--border)', background: 'var(--surface)', flex: 'none' }}>
@@ -54,11 +52,6 @@ export function TopBar({ tab, setTab, capacity, liveCount, onLiveWall }: Props) 
       <div style={{ flex: 1 }} />
 
       {capacity && <CapacityMeter used={capacity.used} total={capacity.total} compact />}
-      {liveCount > 0 && (
-        <Button variant="outline" size="sm" icon="monitor" onClick={onLiveWall}>
-          Live Wall <span className="mono" style={{ color: 'var(--inuse-text)', marginLeft: 2 }}>{liveCount}</span>
-        </Button>
-      )}
       <div style={{ width: 1, height: 24, background: 'var(--border)' }} />
       <IconButton name={theme === 'dark' ? 'sun' : 'moon'} size={17} title="Toggle theme" onClick={toggleTheme} />
     </header>

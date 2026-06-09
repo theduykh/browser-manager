@@ -22,6 +22,9 @@ export function IconButton({ name, size = 16, title, active, disabled, onClick, 
       onMouseEnter={() => setH(true)}
       onMouseLeave={() => setH(false)}
       style={{
+        // Reset the legacy base `button { padding: 6px 12px }` rule, which otherwise
+        // shrinks the content box below the icon and shoves it off-center.
+        padding: 0,
         display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 'var(--r-sm)',
         background: active ? 'var(--accent-tint)' : (h ? 'var(--surface-2)' : 'transparent'),
         border: `1px solid ${active ? 'var(--accent-line)' : 'transparent'}`,
