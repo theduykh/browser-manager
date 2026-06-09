@@ -135,7 +135,7 @@ curl -X POST http://localhost:3000/api/profiles \
 
 Partial update. Only fields present in the body are touched.
 
-**Request body** — same shape as create, all fields optional, plus `profile_name`. Renaming is rejected while `IN_USE`. Renaming also renames the on-disk folder.
+**Request body** — same shape as create, all fields optional, plus `profile_name`. Renaming is rejected while `IN_USE`. Renaming also renames the on-disk folder. Note that arrays or objects like `tags` and `launch_config` replace the existing data entirely when provided (they are not merged). To remove a profile from a group or clear all tags, pass `group_id: null` or `tags: []`.
 
 **Response 200** — the updated [Profile](#profile-shape).
 
