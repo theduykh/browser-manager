@@ -3,7 +3,7 @@
 **Slug:** `groups-and-tags`
 **Owner agent:** `backend-developer` (DB/API), `frontend-developer` (sidebar/UI)
 **Status:** `shipped`
-**Last updated:** 2026-06-06
+**Last updated:** 2026-06-09
 
 ## Context
 
@@ -112,3 +112,7 @@ UI (`http://localhost:8088`):
 
 - 2026-06-06 — Initial implementation: `groups` table + `group_id`/`tags` columns, `/api/groups` CRUD, sidebar filter bar (group select + tag chips, AND semantics), Manage-groups modal, Group/Tags inputs on the profile form.
 - 2026-06-06 — Replaced the `TagInput` native `<datalist>` with a custom live-autocomplete dropdown: substring-filters existing tags per keystroke, bolds the matched characters, and supports ↑/↓ + Enter and mouse selection.
+- 2026-06-09 — Moved the Close button in the Manage Groups modal to the header, and disabled closing on clicking outside the modal backdrop.
+- 2026-06-09 — Added the "Manage groups" button next to the group selection dropdown in the Create Profile modal, and disabled closing on clicking outside the backdrop for the Create Profile modal.
+- 2026-06-09 — Replaced the settings icon button in ProfileRail header with an uppercase text button "MANAGE GROUPS" for better usability.
+- 2026-06-09 — Replaced the browser's default confirm dialog with the app's custom Modal component when deleting groups in the Manage Groups popup.

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Group } from '../api/types';
+import { Modal, Button } from '../ui';
 
 interface Props {
   groups: Group[];
@@ -14,6 +15,7 @@ export function ManageGroupsModal({ groups, busy, onCreate, onRename, onDelete, 
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
+  const [deleteConfirmGroup, setDeleteConfirmGroup] = useState<Group | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -39,12 +41,12 @@ export function ManageGroupsModal({ groups, busy, onCreate, onRename, onDelete, 
   };
 
   return (
-    <div
-      className="modal-backdrop"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    <div className="modal-backdrop">
       <div className="modal modal-wide" role="dialog" aria-modal="true">
-        <h2>Manage groups</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 style={{ margin: 0 }}>Manage groups</h2>
+          <button className="ghost" onClick={onClose} disabled={busy} style={{ margin: 0 }}>Close</button>
+        </div>
 
         <div className="group-list">
           {groups.length === 0 && (
@@ -76,9 +78,7 @@ export function ManageGroupsModal({ groups, busy, onCreate, onRename, onDelete, 
                   <button
                     className="danger"
                     disabled={busy}
-                    onClick={() => {
-                      if (confirm(`Delete group "${g.name}"? Its profiles become Ungrouped.`)) onDelete(g.id);
-                    }}
+                    onClick={() => setDeleteConfirmGroup(g)}
                   >
                     Delete
                   </button>
@@ -101,11 +101,40 @@ export function ManageGroupsModal({ groups, busy, onCreate, onRename, onDelete, 
             Add
           </button>
         </div>
-
-        <div className="modal-actions">
-          <button className="ghost" onClick={onClose} disabled={busy}>Close</button>
-        </div>
       </div>
+
+      {deleteConfirmGroup && (
+        <Modal
+          title="Delete group?"
+          subtitle="This action cannot be undone."
+          icon="alert"
+          width={440}
+          onClose={() => setDeleteConfirmGroup(null)}
+          footer={
+            <>
+              <Button variant="ghost" disabled={busy} onClick={() => setDeleteConfirmGroup(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                danger
+                icon="trash"
+                disabled={busy}
+                onClick={() => {
+                  onDelete(deleteConfirmGroup.id);
+                  setDeleteConfirmGroup(null);
+                }}
+              >
+                Delete
+              </Button>
+            </>
+          }
+        >
+          <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
+            Are you sure you want to permanently delete the group <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{deleteConfirmGroup.name}</strong>? Its profiles will become Ungrouped.
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -155,11 +155,23 @@ export function ProfileRail({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px 6px 14px', borderTop: '1px solid var(--border)' }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '.07em', textTransform: 'uppercase' }}>Profiles</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)' }}>{list.length}</span>
-          <IconButton name="settings" size={14} title="Manage groups" onClick={onManageGroups} style={{ width: 24, height: 24 }} />
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '.07em', textTransform: 'uppercase' }}>
+          Profiles <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 4 }}>({list.length})</span>
         </span>
+        <button
+          type="button"
+          className="ghost"
+          onClick={onManageGroups}
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            padding: '2px 6px',
+            textTransform: 'uppercase',
+            letterSpacing: '.03em',
+          }}
+        >
+          Manage groups
+        </button>
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', padding: '0 8px 12px', display: 'flex', flexDirection: 'column', gap: 1 }}>

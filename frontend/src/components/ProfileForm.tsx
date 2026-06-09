@@ -37,6 +37,7 @@ interface Props {
   twoCol?: boolean;              // lay short fields out in 2 columns (wide detail panel)
   hideActions?: boolean;         // hide the built-in Save/Cancel bar (parent renders its own)
   onCanSaveChange?: (canSave: boolean) => void;
+  onManageGroups?: () => void;
 }
 
 export interface ProfileFormHandle {
@@ -92,6 +93,7 @@ function detectPreset(w: number, h: number): string {
 export const ProfileForm = forwardRef<ProfileFormHandle, Props>(function ProfileForm({
   initial, busy, groups, tagSuggestions, lockName, saveLabel = 'Save',
   onSubmit, onCancel, showNameField = true, twoCol = false, hideActions = false, onCanSaveChange,
+  onManageGroups,
 }, ref) {
   const [v, setV] = useState<ProfileFormValues>(initial);
   // 'Custom' is a user intent, not derivable from dimensions alone: 1920×1080 matches a
@@ -179,16 +181,30 @@ export const ProfileForm = forwardRef<ProfileFormHandle, Props>(function Profile
 
       <div className="form-row">
         <label>Group</label>
-        <select
-          value={v.group_id ?? ''}
-          disabled={busy}
-          onChange={(e) => set('group_id', e.target.value === '' ? null : Number(e.target.value))}
-        >
-          <option value="">Ungrouped</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <select
+            value={v.group_id ?? ''}
+            disabled={busy}
+            onChange={(e) => set('group_id', e.target.value === '' ? null : Number(e.target.value))}
+            style={{ flex: 1 }}
+          >
+            <option value="">Ungrouped</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+          {onManageGroups && (
+            <button
+              type="button"
+              className="ghost"
+              disabled={busy}
+              onClick={onManageGroups}
+              style={{ flex: 'none' }}
+            >
+              Manage groups
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="form-row">

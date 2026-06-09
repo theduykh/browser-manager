@@ -8,9 +8,10 @@ interface Props {
   tagSuggestions?: string[];
   onCancel: () => void;
   onSubmit: (values: ProfileFormValues) => void;
+  onManageGroups: () => void;
 }
 
-export function CreateProfileModal({ busy, groups, tagSuggestions, onCancel, onSubmit }: Props) {
+export function CreateProfileModal({ busy, groups, tagSuggestions, onCancel, onSubmit, onManageGroups }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
     window.addEventListener('keydown', onKey);
@@ -18,10 +19,7 @@ export function CreateProfileModal({ busy, groups, tagSuggestions, onCancel, onS
   }, [onCancel]);
 
   return (
-    <div
-      className="modal-backdrop"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
-    >
+    <div className="modal-backdrop">
       <div className="modal modal-wide" role="dialog" aria-modal="true">
         <h2>Create profile</h2>
         <ProfileForm
@@ -32,6 +30,7 @@ export function CreateProfileModal({ busy, groups, tagSuggestions, onCancel, onS
           saveLabel="Create"
           onCancel={onCancel}
           onSubmit={(values) => onSubmit(values)}
+          onManageGroups={onManageGroups}
         />
       </div>
     </div>

@@ -226,6 +226,7 @@ export function Dashboard({ focusProfileId, onFocusConsumed }: Props) {
           tagSuggestions={allTags}
           onCancel={() => setShowCreate(false)}
           onSubmit={(values: ProfileFormValues) => createM.mutate({ ...values, profile_name: values.profile_name.trim() })}
+          onManageGroups={() => setShowGroups(true)}
         />
       )}
 
