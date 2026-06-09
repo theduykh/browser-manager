@@ -51,6 +51,22 @@ async function main() {
   const app = buildApp(db);
   app.listen(config.port, '0.0.0.0', () => {
     log('info', 'backend.listening', { port: config.port });
+
+    console.log(`
+====================================================================
+🚀 BROWSER MANAGER IS RUNNING!
+====================================================================
+👉 Access the Dashboard:  http://localhost:8088
+👉 Backend API Status:    http://localhost:${config.port}/health
+
+Configuration:
+- Max parallel slots:   ${config.maxSlots}
+- Profiles storage:     ${config.profilesRoot}
+- Database path:        ${config.databasePath}
+- VNC / WS ports:       6001 - ${6000 + config.maxSlots}
+- CDP debug ports:      9223 - ${9222 + config.maxSlots}
+====================================================================
+`);
   });
 
   const stopZombie = startZombieKiller(db);

@@ -10,6 +10,7 @@ A self-hosted system for managing multiple Chromium profiles to support parallel
 - Implementation plan: `~/.claude/plans/t-i-ang-mu-n-tri-n-linear-gosling.md`
 - HTTP API reference for integrators: [docs/api.md](docs/api.md)
 - Release packaging (tarball distribution): [docs/features/release-packaging.md](docs/features/release-packaging.md) — run `./release.ps1 -Version vX.Y.Z` to produce `release/dist/browser-manager-vX.Y.Z.zip`.
+- Docker Hub publishing: [docs/features/docker-hub-publishing.md](docs/features/docker-hub-publishing.md) — run `./publish.ps1` to build and push images directly to Docker Hub.
 - Phase 1 (foundation) complete. Phase 2 (core backend) is next.
 
 ## Agents — who owns what

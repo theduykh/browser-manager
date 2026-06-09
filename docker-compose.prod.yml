@@ -1,6 +1,6 @@
 services:
   backend:
-    image: browser-manager-backend:latest
+    image: theduykh/browser-manager-backend:latest
     container_name: browser-manager-backend
     restart: unless-stopped
     environment:
@@ -24,7 +24,7 @@ services:
       - SYS_PTRACE
 
   frontend:
-    image: browser-manager-frontend:latest
+    image: theduykh/browser-manager-frontend:latest
     container_name: browser-manager-frontend
     restart: unless-stopped
     ports:

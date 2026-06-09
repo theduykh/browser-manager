@@ -47,7 +47,7 @@ if (-not $SkipBuild) {
     if ($LASTEXITCODE -ne 0) { throw "backend build failed" }
 
     Write-Host "--> Building frontend production image..." -ForegroundColor Yellow
-    docker build -f Dockerfile.frontend.prod -t "${frontendImg}:${Version}" -t "${frontendImg}:latest" .
+    docker build -f Dockerfile.frontend -t "${frontendImg}:${Version}" -t "${frontendImg}:latest" .
     if ($LASTEXITCODE -ne 0) { throw "frontend build failed" }
 }
 
@@ -83,7 +83,7 @@ $gzSize = [math]::Round((Get-Item $gzPath).Length / 1MB, 1)
 Write-Host "    images.tar.gz = $gzSize MB" -ForegroundColor Gray
 
 # Copy compose + install doc
-Copy-Item -Path (Join-Path $repoRoot 'docker-compose.release.yml') `
+Copy-Item -Path (Join-Path $repoRoot 'docker-compose.prod.yml') `
           -Destination (Join-Path $stageDir 'docker-compose.yml')
 Copy-Item -Path (Join-Path $repoRoot 'release/INSTALL.md') `
           -Destination (Join-Path $stageDir 'INSTALL.md')

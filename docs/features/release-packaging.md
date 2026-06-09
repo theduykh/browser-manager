@@ -14,15 +14,15 @@ Team members and downstream consumers should be able to run Browser Manager with
 ```
 release.ps1 (one command on the maintainer's machine)
    │
-   ├─ docker build  Dockerfile.backend         → browser-manager-backend:<ver>
-   ├─ docker build  Dockerfile.frontend.prod   → browser-manager-frontend:<ver>
-   │       (multi-stage: vite build → nginx static + /api proxy)
-   ├─ docker save   both images               → images.tar
-   ├─ gzip          images.tar                → images.tar.gz (~400–500 MB)
-   ├─ copy          docker-compose.release.yml → docker-compose.yml
-   ├─ copy          release/INSTALL.md
-   ├─ write         VERSION stamp
-   └─ Compress-Archive                        → release/dist/browser-manager-<ver>.zip
+    ├─ docker build  Dockerfile.backend         → browser-manager-backend:<ver>
+    ├─ docker build  Dockerfile.frontend        → browser-manager-frontend:<ver>
+    │       (multi-stage: vite build → nginx static + /api proxy)
+    ├─ docker save   both images               → images.tar
+    ├─ gzip          images.tar                → images.tar.gz (~400–500 MB)
+    ├─ copy          docker-compose.prod.yml   → docker-compose.yml
+    ├─ copy          release/INSTALL.md
+    ├─ write         VERSION stamp
+    └─ Compress-Archive                        → release/dist/browser-manager-<ver>.zip
 ```
 
 The member's workflow is the inverse:
@@ -50,14 +50,14 @@ The dev compose bind-mounts `./data` so the maintainer can inspect the SQLite fi
 ### What the release does NOT include
 
 - Source code.
-- The dev `docker-compose.yml`, `Dockerfile.backend`, `Dockerfile.frontend`.
+- The dev `docker-compose.yml`, `Dockerfile.backend`, `Dockerfile.frontend.dev`.
 - Any `.env` or example env file — the prod compose has sensible defaults baked in. Members who need to override port mappings edit the included `docker-compose.yml` directly.
 
 ## Files
 
-- [Dockerfile.frontend.prod](../../Dockerfile.frontend.prod) — multi-stage build + nginx runtime.
+- [Dockerfile.frontend](../../Dockerfile.frontend) — multi-stage build + nginx runtime.
 - [release/nginx.conf](../../release/nginx.conf) — static + `/api` proxy.
-- [docker-compose.release.yml](../../docker-compose.release.yml) — image-only compose (no `build:`), named volumes, restart policy.
+- [docker-compose.prod.yml](../../docker-compose.prod.yml) — image-only compose (no `build:`), named volumes, restart policy.
 - [release.ps1](../../release.ps1) — single-command release pipeline.
 - [release/INSTALL.md](../../release/INSTALL.md) — member-facing install + troubleshooting doc shipped inside the zip.
 

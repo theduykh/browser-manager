@@ -32,7 +32,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile.frontend.dev
     image: browser-manager-frontend:dev
     container_name: browser-manager-frontend
     # restart: unless-stopped
