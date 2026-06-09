@@ -56,12 +56,14 @@ export function ScriptRail({ scripts, selectedId, loading, onSelect, onNew }: Pr
 
   return (
     <aside style={{ width: 268, flex: 'none', borderRight: '1px solid var(--border)', background: 'var(--rail)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ padding: '12px 12px 8px', display: 'flex', gap: 8 }}>
-        <div style={{ position: 'relative', flex: 1 }}>
+      <div style={{ padding: '12px 12px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Button variant="primary" icon="plus" onClick={onNew} style={{ width: '100%', padding: '9px', fontSize: 13.5, justifyContent: 'center' }}>
+          Create Script
+        </Button>
+        <div style={{ position: 'relative', width: '100%' }}>
           <Icon name="search" size={14} style={{ position: 'absolute', left: 10, top: 9, color: 'var(--text-3)' }} />
-          <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} style={{ padding: '7px 10px 7px 30px' }} />
+          <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} style={{ padding: '7px 10px 7px 30px', width: '100%', boxSizing: 'border-box' }} />
         </div>
-        <Button variant="primary" icon="plus" onClick={onNew} title="New script" style={{ flex: 'none' }} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px 6px 14px', borderTop: '1px solid var(--border)' }}>
